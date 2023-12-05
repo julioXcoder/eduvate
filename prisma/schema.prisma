@@ -1,0 +1,228 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Staff {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  password  String
+  firstName String
+  lastName  String
+  imageURL  String
+  phone     String?
+  role      RoleName
+}
+
+model Student {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  password  String
+  firstName String
+  lastName  String
+  imageURL  String
+  phone     String?
+  role      RoleName @default(STUDENT)
+}
+
+model StudentPositions {
+  id        String         @id @default(auto()) @map("_id") @db.ObjectId
+  studentID String         @unique
+  positions PositionName[]
+}
+
+model StudentAcademicDetails {
+  id               String @id @default(auto()) @map("_id") @db.ObjectId
+  studentId        String @unique @db.ObjectId
+  firstName        String
+  lastName         String
+  academicYearId   String @db.ObjectId
+  programmeClassId String @db.ObjectId
+}
+
+model StudentRegistration {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  studentId         String  @unique @db.ObjectId
+  academicYearId    String  @db.ObjectId
+  academicFeeId     String  @db.ObjectId
+  tuitionFeeId      String  @db.ObjectId
+  healthCareId      String  @db.ObjectId
+  mealsFeeId        String? @db.ObjectId
+  accomodationFeeId String? @db.ObjectId
+}
+
+model AcademicFee {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  controlNumber Int
+  paymentDue    Float
+  amoutPayed    Float  @default(0)
+}
+
+model TuitionFee {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  controlNumber Int
+  paymentDue    Float
+  amoutPayed    Float  @default(0)
+}
+
+model HealthCare {
+  id            String               @id @default(auto()) @map("_id") @db.ObjectId
+  controlNumber Int
+  stutus        HealthCareStutusName @default(INACTIVE)
+}
+
+enum HealthCareStutusName {
+  ACTIVE
+  INACTIVE
+}
+
+model MealsFee {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  controlNumber Int
+  paymentDue    Float
+  amoutPayed    Float  @default(0)
+}
+
+model AccomodationFee {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  controlNumber Int
+  paymentDue    Float
+  amoutPayed    Float  @default(0)
+}
+
+model StudentRegistrationHistory {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  studentId       String   @unique @db.ObjectId
+  registrationIds String[] @db.ObjectId
+}
+
+enum PositionName {
+  STUDENT_PRESIDENT
+  CLASS_REPRESENTATIVE
+}
+
+enum RoleName {
+  EXAMINATION_OFFICER
+  LECTURE
+  STUDENT
+}
+
+enum LevelName {
+  DIPLOMA
+  BACHELOR
+  CERTIFICATE
+}
+
+enum ProgrammeClassName {
+  I
+  II
+  III
+  IV
+}
+
+model AcademicYear {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime
+  name      String   @unique
+}
+
+model University {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+}
+
+model College {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  universityId String @db.ObjectId
+}
+
+model Department {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  name      String @unique
+  collegeId String @db.ObjectId
+}
+
+model Programme {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  level        LevelName
+  departmentId String    @db.ObjectId
+  tuitionFee   Float
+}
+
+model ProgrammeClass {
+  id          String             @id @default(auto()) @map("_id") @db.ObjectId
+  name        ProgrammeClassName
+  programmeId String             @db.ObjectId
+}
+
+enum RegistrationStatusName {
+  REGISTERED
+  NOT_REGISTERED
+}
+
+//TODO: Add registration period
+model Semester {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  academicYearId String   @db.ObjectId
+  createdAt      DateTime
+}
+
+model CAResult {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  marks            Int?
+  maxMarks         Int
+  studentId        String    @db.ObjectId
+  componentId      String    @db.ObjectId
+  componentName    String
+  submitted        Boolean?  @default(false)
+  courseInstanceId String    @db.ObjectId
+  createdAt        DateTime
+  updatedAt        DateTime?
+}
+
+model UEResult {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  marks            Int?
+  studentId        String   @db.ObjectId
+  courseInstanceId String   @db.ObjectId
+  createdAt        DateTime
+  updatedAt        DateTime
+}
+
+model CAComponent {
+  id               String              @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  maxMarks         Int
+  type             CAComponentTypeName
+  description      String?
+  courseInstanceId String              @db.ObjectId
+}
+
+enum CAComponentTypeName {
+  TASK
+  EXAM
+}
+
+model Course {
+  id               String @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  code             String @unique
+  credit           Int
+  status           String
+  programmeClassId String @db.ObjectId
+}
+
+//TODO: Add resources 
+model CourseInstance {
+  id               String @id @default(auto()) @map("_id") @db.ObjectId
+  courseId         String @db.ObjectId
+  programmeClassId String @db.ObjectId
+  semesterId       String @db.ObjectId
+  academicYearId   String @db.ObjectId
+  lecturerId       String @db.ObjectId
+}
