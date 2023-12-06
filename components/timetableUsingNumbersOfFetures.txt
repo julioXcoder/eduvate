@@ -56,10 +56,7 @@ const Timetable = () => {
       courses: [
         { name: "Algebra", sockets: [["computers"], ["laboratory"]] },
         { name: "Calculus", sockets: [["computers"], ["laboratory"]] },
-        {
-          name: "Geometry",
-          sockets: [["computers"], ["laboratory", "workshop"], ["workshop"]],
-        },
+        { name: "Geometry", sockets: [["computers", "laboratory"], ["any"]] },
       ],
     },
     {
@@ -215,14 +212,8 @@ const Timetable = () => {
         [courses[i], courses[j]] = [courses[j], courses[i]];
       }
 
-      // Sort the courses by the number of requirements and then by the number of sockets
-      courses.sort((a, b) => {
-        if (a.sockets.length !== b.sockets.length) {
-          return a.sockets.length - b.sockets.length;
-        } else {
-          return a.sockets[0].length - b.sockets[0].length;
-        }
-      });
+      // Sort the courses by the number of requirements
+      courses.sort((a, b) => a.sockets.length - b.sockets.length);
 
       return { ...programme, courses };
     });
@@ -230,7 +221,7 @@ const Timetable = () => {
 
   return (
     <div>
-      {/* {timetable.map((day, dayIndex) => (
+      {timetable.map((day, dayIndex) => (
         <div key={dayIndex}>
           <h2>{`${daysOfWeek[dayIndex]}`}</h2>
           {day.map((classroom, classroomIndex) => (
@@ -246,38 +237,7 @@ const Timetable = () => {
             </div>
           ))}
         </div>
-      ))} */}
-      <table>
-        <thead>
-          <tr>
-            <th>Day / Time</th>
-            {classrooms.map((classroom, index) => (
-              <th key={index}>{classroom.name}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {timetable.map((day, dayIndex) => (
-            <React.Fragment key={dayIndex}>
-              <tr>
-                <td colSpan={classrooms.length + 1}>
-                  <h2>{daysOfWeek[dayIndex]}</h2>
-                </td>
-              </tr>
-              {day[0].map((period, periodIndex) => (
-                <tr key={periodIndex}>
-                  <td>{period.time}</td>
-                  {day.map((classroom, classroomIndex) => (
-                    <td key={classroomIndex}>
-                      {classroom[periodIndex].course}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </React.Fragment>
-          ))}
-        </tbody>
-      </table>
+      ))}
       <div>
         <h2>Unscheduled Courses</h2>
         {unscheduledCourses.map((course, index) => (
@@ -287,5 +247,18 @@ const Timetable = () => {
     </div>
   );
 };
+
+// function shuffleCourses(programmes: Programme[]): Programme[] {
+//   return programmes.map((programme) => {
+//     let courses = [...programme.courses];
+
+//     for (let i = courses.length - 1; i > 0; i--) {
+//       const j = Math.floor(Math.random() * (i + 1));
+//       [courses[i], courses[j]] = [courses[j], courses[i]];
+//     }
+
+//     return { ...programme, courses };
+//   });
+// }
 
 export default Timetable;
