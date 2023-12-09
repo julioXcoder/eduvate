@@ -9,22 +9,24 @@ datasource db {
 
 model Staff {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  staffId   String   @unique
   password  String
   firstName String
   lastName  String
-  imageURL  String
   phone     String?
+  imageURL  String?
   role      RoleName
 }
 
 model Student {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   password  String
+  studentId String   @unique
   firstName String
   lastName  String
-  imageURL  String
-  phone     String?
+  imageURL  String?
   role      RoleName @default(STUDENT)
+  phone     String?
 }
 
 model StudentPositions {
@@ -35,67 +37,58 @@ model StudentPositions {
 
 model StudentAcademicDetails {
   id               String @id @default(auto()) @map("_id") @db.ObjectId
-  studentId        String @unique @db.ObjectId
-  firstName        String
-  lastName         String
+  studentId        String @unique
   academicYearId   String @db.ObjectId
   programmeClassId String @db.ObjectId
 }
 
-model StudentRegistration {
-  id                String  @id @default(auto()) @map("_id") @db.ObjectId
-  studentId         String  @unique @db.ObjectId
-  academicYearId    String  @db.ObjectId
-  academicFeeId     String  @db.ObjectId
-  tuitionFeeId      String  @db.ObjectId
-  healthCareId      String  @db.ObjectId
-  mealsFeeId        String? @db.ObjectId
-  accomodationFeeId String? @db.ObjectId
-}
-
 model AcademicFee {
-  id            String @id @default(auto()) @map("_id") @db.ObjectId
-  controlNumber Int
-  paymentDue    Float
-  amoutPayed    Float  @default(0)
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  studentId      String
+  academicYearId String @db.ObjectId
+  controlNumber  Int
+  paymentDue     Float
+  amoutPayed     Float  @default(0)
 }
 
 model TuitionFee {
-  id            String @id @default(auto()) @map("_id") @db.ObjectId
-  controlNumber Int
-  paymentDue    Float
-  amoutPayed    Float  @default(0)
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  studentId      String
+  academicYearId String @db.ObjectId
+  controlNumber  Int
+  paymentDue     Float
+  amoutPayed     Float  @default(0)
 }
 
 model HealthCare {
-  id            String               @id @default(auto()) @map("_id") @db.ObjectId
-  controlNumber Int
-  stutus        HealthCareStutusName @default(INACTIVE)
+  id             String               @id @default(auto()) @map("_id") @db.ObjectId
+  studentId      String
+  academicYearId String               @db.ObjectId
+  controlNumber  Int
+  stutus         HealthCareStatusName @default(INACTIVE)
 }
 
-enum HealthCareStutusName {
+enum HealthCareStatusName {
   ACTIVE
   INACTIVE
 }
 
 model MealsFee {
-  id            String @id @default(auto()) @map("_id") @db.ObjectId
-  controlNumber Int
-  paymentDue    Float
-  amoutPayed    Float  @default(0)
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  studentId      String
+  academicYearId String @db.ObjectId
+  controlNumber  Int
+  paymentDue     Float
+  amoutPayed     Float  @default(0)
 }
 
 model AccomodationFee {
-  id            String @id @default(auto()) @map("_id") @db.ObjectId
-  controlNumber Int
-  paymentDue    Float
-  amoutPayed    Float  @default(0)
-}
-
-model StudentRegistrationHistory {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  studentId       String   @unique @db.ObjectId
-  registrationIds String[] @db.ObjectId
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  studentId      String
+  academicYearId String @db.ObjectId
+  controlNumber  Int
+  paymentDue     Float
+  amoutPayed     Float  @default(0)
 }
 
 enum PositionName {
@@ -164,7 +157,6 @@ enum RegistrationStatusName {
   NOT_REGISTERED
 }
 
-//TODO: Add registration period
 model Semester {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
   name           String
@@ -172,57 +164,58 @@ model Semester {
   createdAt      DateTime
 }
 
-model CAResult {
-  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+model TestResult {
+  id               String @id @default(auto()) @map("_id") @db.ObjectId
+  studentId        String
   marks            Int?
-  maxMarks         Int
-  studentId        String    @db.ObjectId
-  componentId      String    @db.ObjectId
-  componentName    String
-  submitted        Boolean?  @default(false)
-  courseInstanceId String    @db.ObjectId
-  createdAt        DateTime
-  updatedAt        DateTime?
+  componentId      String @db.ObjectId
+  courseInstanceId String @db.ObjectId
+}
+
+model TaskResult {
+  id               String  @id @default(auto()) @map("_id") @db.ObjectId
+  studentId        String
+  marks            Int?
+  componentId      String  @db.ObjectId
+  submitted        Boolean @default(false)
+  fileUrl          String?
+  courseInstanceId String  @db.ObjectId
 }
 
 model UEResult {
-  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  id               String @id @default(auto()) @map("_id") @db.ObjectId
   marks            Int?
-  studentId        String   @db.ObjectId
-  courseInstanceId String   @db.ObjectId
-  createdAt        DateTime
-  updatedAt        DateTime
+  studentId        String @db.ObjectId
+  courseInstanceId String @db.ObjectId
 }
 
-model CAComponent {
-  id               String              @id @default(auto()) @map("_id") @db.ObjectId
+model Component {
+  id               String            @id @default(auto()) @map("_id") @db.ObjectId
   name             String
   maxMarks         Int
-  type             CAComponentTypeName
+  type             ComponentTypeName
   description      String?
-  courseInstanceId String              @db.ObjectId
+  courseInstanceId String            @db.ObjectId
 }
 
-enum CAComponentTypeName {
+enum ComponentTypeName {
   TASK
-  EXAM
+  TEST
 }
 
 model Course {
-  id               String @id @default(auto()) @map("_id") @db.ObjectId
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
   name             String
-  code             String @unique
-  credit           Int
-  status           String
-  programmeClassId String @db.ObjectId
+  code             String   @unique
+  credits          Int
+  resourceUrls     String[]
+  programmeClassId String   @db.ObjectId
 }
 
 //TODO: Add resources 
 model CourseInstance {
-  id               String @id @default(auto()) @map("_id") @db.ObjectId
-  courseId         String @db.ObjectId
-  programmeClassId String @db.ObjectId
-  semesterId       String @db.ObjectId
-  academicYearId   String @db.ObjectId
-  lecturerId       String @db.ObjectId
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  courseId   String @db.ObjectId
+  semesterId String @db.ObjectId
+  lecturerId String @db.ObjectId
 }

@@ -89,7 +89,7 @@ const Timetable = () => {
   const [dayStructure, setDayStructure] = useState<DayStructure[]>([
     { type: "breakfast", duration: 2 },
     { type: "s", duration: 3 },
-    { type: "break", duration: 1 },
+    { type: "break", duration: 1.5 },
     { type: "s", duration: 2 },
     { type: "lunch", duration: 1 },
     { type: "s", duration: 2 },
@@ -126,7 +126,7 @@ const Timetable = () => {
     });
   }, []);
 
-  const sc = useEffect(() => {
+  useEffect(() => {
     let startingTime = 8 * 60;
     const programmesCopy = shuffleCourses(
       JSON.parse(JSON.stringify(programmes)),
