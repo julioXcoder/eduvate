@@ -5,8 +5,12 @@ export async function POST(req: NextRequest) {
     const body = await req.formData();
 
     const image = body.get("image");
+    const firstName = body.get("firstName");
+    const lastName = body.get("lastName");
 
     console.log("Server image", image);
+    console.log("First name", firstName);
+    console.log("Last name", lastName);
 
     return NextResponse.json({}, { status: 200 });
   } catch (ex) {

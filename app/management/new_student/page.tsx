@@ -70,9 +70,10 @@ const NewStudentPage = () => {
 
       // Append other data to formData
       Object.keys(data).forEach((key) => {
-        formData.append(key, data[key]);
+        formData.append(key, (data as any)[key]);
       });
 
+      // FIXME: Use two api one for image and the other for data
       console.log("Data: ", data);
       const response = await fetch("/api/students/add_new_student", {
         method: "POST",
