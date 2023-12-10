@@ -6,38 +6,51 @@ import Image from "next/image";
 import { useForm, FieldValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MdOutlineErrorOutline } from "react-icons/md";
-import { IoMdTrash } from "react-icons/io";
+import { IoMdTrash, IoMdEye, IoMdEyeOff } from "react-icons/io";
 import { BsUpload } from "react-icons/bs";
 import { AiOutlineClose } from "react-icons/ai";
-import logo from "@/public/logo.png";
 import z from "zod";
-import { useRouter } from "next/navigation";
 import { useState, useRef, ChangeEvent } from "react";
-import { Span } from "next/dist/trace";
+import { UploadData, UploadFileResponse } from "@/types/uploadthings";
 
-const schema = z.object({
-  firstName: z.string().min(1, { message: "First name is required" }).max(100, {
-    message: "First name must be no more than 100 characters long",
-  }),
-  lastName: z.string().min(1, { message: "Last name is required" }).max(100, {
-    message: "Last name must be no more than 100 characters long",
-  }),
-});
+const phoneRegex = /^\+\d{3}\d{6,9}$/;
+
+const schema = z
+  .object({
+    firstName: z.string().min(1, { message: "First name is required" }),
+    lastName: z.string().min(1, { message: "Last name is required" }),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters long" }),
+    confirmPassword: z.string().min(8, {
+      message: "Confirm password must be at least 8 characters long",
+    }),
+    phone: z
+      .string()
+      .optional()
+      .refine((value) => {
+        if (!value) return true;
+        return phoneRegex.test(value);
+      }, "Please enter your phone number in the following format: '+255123456789"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 const imageSchema = z.object({
   image: z
     .any()
     .optional()
     .nullable()
-    .refine((file) => file && file.size <= 500 * 1024, {
-      message: "Image should be less than 500KB",
+    .refine((file) => file && file.size <= 200 * 1024, {
+      message: "Image should be less than 200KB",
     }),
 });
 
 type FormData = z.infer<typeof schema>;
 
 const NewStudentPage = () => {
-  const router = useRouter();
   const [image, setImage] = useState<File | null>(null);
   const [error, setError] = useState<String>("");
   const [preview, setPreview] = useState<string | null>(null);
@@ -48,41 +61,60 @@ const NewStudentPage = () => {
     handleSubmit,
     formState: { errors, isValid },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
+  const [showPass, setShowPass] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const onSubmit = async (data: FormData) => {
+  const toggleShowPass = () => setShowPass(!showPass);
+  const toggleConfirmPass = () => setShowConfirm(!showConfirm);
+
+  const onSubmit = async (formData: FormData) => {
     setIsLoading(true);
 
     try {
-      const formData = new FormData();
+      let uploadImageData: UploadData = {};
 
       // Append the image to formData only if it exists
-      if (image) {
-        const imageValidation = imageSchema.safeParse({ image });
+      // if (image) {
+      //   const imageValidation = imageSchema.safeParse({ image });
 
-        if (!imageValidation.success) {
-          setError(imageValidation.error.errors[0].message);
-          throw new Error("Error validating image");
-        } else {
-          formData.append("image", image);
-          setError("");
-        }
-      }
+      //   if (!imageValidation.success) {
+      //     setError(imageValidation.error.errors[0].message);
+      //     throw new Error("Error validating image");
+      //   } else {
+      //     setError("");
 
-      // Append other data to formData
-      Object.keys(data).forEach((key) => {
-        formData.append(key, (data as any)[key]);
-      });
+      //     formData.append("image", image);
 
-      // FIXME: Use two api one for image and the other for data
-      console.log("Data: ", data);
-      const response = await fetch("/api/students/add_new_student", {
-        method: "POST",
-        body: formData,
-      });
+      //     const response = await fetch("/api/students/upload_profile_image", {
+      //       method: "POST",
+      //       body: formData,
+      //     });
 
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
+      //     if (!response.ok) {
+      //       setError("Upload failed");
+      //       throw new Error("Upload failed");
+      //     }
+
+      //     const uploadedImage: UploadFileResponse = await response.json();
+
+      //     const { data: imageData, error } = uploadedImage;
+
+      //     if (imageData) {
+      //       uploadImageData = imageData;
+      //     } else if (error) {
+      //       // FIXME: Remove error
+      //       console.log("Error", error);
+      //       setError("Upload failed");
+      //       throw new Error("Upload failed");
+      //     }
+      //   }
+      // }
+
+      // FIXME: Call another api to save the image data and image url
+      // console.log("Image url", uploadImageData.url);
+      // console.log("Image key", uploadImageData.key);
+      const newData = { ...formData, image: "samdckewmlwlscmlaw" };
+      console.log("form data:", newData);
     } catch (error) {
       console.log(error);
     } finally {
@@ -155,7 +187,7 @@ const NewStudentPage = () => {
                 {image ? "Change" : "Upload"} image
               </Button>
               {image && (
-                <span className="text-small flex items-center gap-x-2">
+                <span className="flex items-center gap-x-2 text-small">
                   {image.name}{" "}
                   <IoMdTrash
                     onClick={handleFileRemove}
@@ -179,6 +211,7 @@ const NewStudentPage = () => {
               {...register("firstName")}
               type="text"
               label="First Name"
+              placeholder="Enter First Name"
               labelPlacement="outside"
             />
             {errors.firstName?.message && (
@@ -193,6 +226,7 @@ const NewStudentPage = () => {
               {...register("lastName")}
               type="text"
               label="Last Name"
+              placeholder="Enter Last Name"
               labelPlacement="outside"
             />
 
@@ -203,7 +237,82 @@ const NewStudentPage = () => {
               </span>
             )}
           </div>
+          <div>
+            <Input
+              {...register("password")}
+              endContent={
+                <button
+                  className="focus:outline-none"
+                  type="button"
+                  onClick={toggleShowPass}
+                >
+                  {showPass ? (
+                    <IoMdEyeOff className="pointer-events-none text-2xl text-default-400" />
+                  ) : (
+                    <IoMdEye className="pointer-events-none text-2xl text-default-400" />
+                  )}
+                </button>
+              }
+              type={showPass ? "text" : "password"}
+              label="Password"
+              placeholder="Enter password"
+              labelPlacement="outside"
+            />
+
+            {errors.password?.message && (
+              <span className="flex items-center gap-x-1 text-red-600">
+                <MdOutlineErrorOutline />
+                {errors.password.message}
+              </span>
+            )}
+          </div>
+          <div>
+            <Input
+              {...register("confirmPassword")}
+              endContent={
+                <button
+                  className="focus:outline-none"
+                  type="button"
+                  onClick={toggleConfirmPass}
+                >
+                  {showConfirm ? (
+                    <IoMdEyeOff className="pointer-events-none text-2xl text-default-400" />
+                  ) : (
+                    <IoMdEye className="pointer-events-none text-2xl text-default-400" />
+                  )}
+                </button>
+              }
+              type={showConfirm ? "text" : "password"}
+              label="Confirm Password"
+              placeholder="Confirm Password"
+              labelPlacement="outside"
+            />
+
+            {errors.confirmPassword?.message && (
+              <span className="flex items-center gap-x-1 text-red-600">
+                <MdOutlineErrorOutline />
+                {errors.confirmPassword.message}
+              </span>
+            )}
+          </div>
+          <div>
+            <Input
+              {...register("phone")}
+              type="text"
+              label="Phone Number"
+              placeholder="Enter your phone Number"
+              labelPlacement="outside"
+            />
+
+            {errors.phone?.message && (
+              <span className="flex items-center gap-x-1 text-red-600">
+                <MdOutlineErrorOutline />
+                {errors.phone.message}
+              </span>
+            )}
+          </div>
         </div>
+
         <Button isDisabled={!isValid || loading} type="submit" color="primary">
           {loading ? "Submitting..." : "Submit"}
         </Button>

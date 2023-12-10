@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { utapi } from "@/server/uploadthing";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.formData();
 
     const image = body.get("image");
-    const firstName = body.get("firstName");
-    const lastName = body.get("lastName");
 
-    console.log("Server image", image);
-    console.log("First name", firstName);
-    console.log("Last name", lastName);
+    const response = await utapi.uploadFiles(image);
 
-    return NextResponse.json({}, { status: 200 });
+    return NextResponse.json(response, { status: 201 });
   } catch (ex) {
     // TODO: Log the console.error();
 
