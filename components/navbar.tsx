@@ -58,7 +58,7 @@ const Navbar = ({ title, fullName, image }: Props) => {
           <div className="flex items-center">
             <div className="ml-3 flex items-center">
               <div className="flex items-center gap-x-1">
-                {/* <ThemeSwitcher /> */}
+                <ThemeSwitcher />
                 <Dropdown>
                   <DropdownTrigger>
                     <span className="flex cursor-pointer items-center gap-x-1">

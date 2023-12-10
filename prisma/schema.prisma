@@ -8,25 +8,25 @@ datasource db {
 }
 
 model Staff {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  staffId   String   @unique
-  password  String
-  firstName String
-  lastName  String
-  phone     String?
-  imageURL  String?
-  role      RoleName
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  staffId        String   @unique
+  hashedPassword String
+  firstName      String
+  lastName       String
+  phone          String?
+  imageURL       String?
+  role           RoleName
 }
 
 model Student {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  password  String
-  studentId String   @unique
-  firstName String
-  lastName  String
-  imageURL  String?
-  role      RoleName @default(STUDENT)
-  phone     String?
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  hashedPassword String
+  studentId      String   @unique
+  firstName      String
+  lastName       String
+  imageURL       String?
+  role           RoleName @default(STUDENT)
+  phone          String?
 }
 
 model StudentPositions {
