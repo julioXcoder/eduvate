@@ -1,6 +1,6 @@
 "use client";
 
-import logo from "@/public/logo.svg";
+import logo from "@/public/leafLogo.png";
 import Link from "next/link";
 import {
   Avatar,
@@ -88,7 +88,7 @@ const Navbar = ({ title, fullName, image }: Props) => {
                   >
                     <DropdownItem
                       startContent={
-                        <FaUser className="text-default-500 pointer-events-none flex-shrink-0 text-xl" />
+                        <FaUser className="pointer-events-none flex-shrink-0 text-xl text-default-500" />
                       }
                     >
                       Profile

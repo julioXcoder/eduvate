@@ -33,54 +33,56 @@ const Page = async () => {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
-      <div>
-        <h1 className="p-4 text-3xl underline underline-offset-2">
-          College List
-        </h1>
-        <div className="mt-5 p-10">
-          <ul className="flex max-w-xs flex-col divide-y divide-gray-200 dark:divide-gray-700">
-            {colleges.map((college) => (
-              <li
-                key={college.id}
-                className="inline-flex items-center gap-x-2 px-4 py-3 text-sm font-medium text-gray-800  dark:text-white"
-              >
-                <Link
-                  className="hover:text-blue-600 hover:underline hover:decoration-blue-600"
-                  href={`/management/colleges/${college.id}`}
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid gap-8 md:grid-cols-2">
+        <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
+          <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
+            College List
+          </h2>
+          <div className="p-6">
+            <ul className="space-y-4">
+              {colleges.map((college) => (
+                <li
+                  key={college.id}
+                  className="flex items-center justify-between border-b border-gray-200 px-4 py-3 text-lg font-medium dark:border-gray-800"
                 >
-                  {college.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-      <div>
-        <h1 className="p-4 text-3xl underline underline-offset-2">
-          Add New College
-        </h1>
-        <form className="mt-5 p-10" action={addCollege}>
-          <div>
-            <label className="mb-2 block text-sm font-medium dark:text-white">
-              College Name
-            </label>
-            <input
-              type="text"
-              name="collegeName"
-              required
-              min={3}
-              className="block w-full rounded-lg border-gray-200 bg-slate-100 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-400 dark:focus:ring-gray-600"
-              placeholder=""
-            />
+                  <Link
+                    href={`/management/colleges/${college.id}`}
+                    className="text-blue-500 hover:underline"
+                  >
+                    {college.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
-          <button
-            type="submit"
-            className="mt-4 inline-flex items-center gap-x-2 rounded-lg border border-transparent bg-teal-500 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-600 disabled:pointer-events-none disabled:opacity-50 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600"
-          >
-            Submit
-          </button>
-        </form>
+        </div>
+        <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
+          <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
+            Add New College
+          </h2>
+          <form className="p-6" action={addCollege}>
+            <div className="mb-4">
+              <label className="block text-sm font-medium dark:text-gray-200">
+                College Name
+              </label>
+              <input
+                type="text"
+                name="collegeName"
+                required
+                minLength={3}
+                className="w-full rounded-lg border-gray-300 bg-gray-100 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:ring-gray-600"
+                placeholder="Enter College Name"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full rounded-lg bg-blue-500 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-600"
+            >
+              Submit
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
