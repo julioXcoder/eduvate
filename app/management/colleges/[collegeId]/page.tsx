@@ -6,7 +6,6 @@ import { IoIosArrowRoundBack } from "react-icons/io";
 export const getCollege = async (collegeId: string) => {
   const college = await prisma.college.findUnique({
     where: {
-      universityId: "6576023a9fe77e8c717afb5f",
       id: collegeId,
     },
   });

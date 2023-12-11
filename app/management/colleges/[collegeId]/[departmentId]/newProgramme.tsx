@@ -163,9 +163,21 @@ const NewProgramme = () => {
             )}
           </div>
         </div>
-        <Button isDisabled={!isValid || loading} type="submit" color="primary">
+        {/* <Button
+          className="w-full"
+          isDisabled={!isValid || loading}
+          type="submit"
+          color="default"
+        >
           {loading ? "Submitting..." : "Submit"}
-        </Button>
+        </Button> */}
+        <button
+          disabled={!isValid || loading}
+          type="submit"
+          className="w-full rounded-lg bg-blue-500 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-600"
+        >
+          {loading ? "Submitting..." : "Submit"}
+        </button>
       </form>
     </div>
   );

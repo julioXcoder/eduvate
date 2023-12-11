@@ -3,6 +3,10 @@ import { usePathname } from "next/navigation";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/react";
 import { getCollegeName } from "@/server/actions/college";
 import { getDepartmentName } from "@/server/actions/department";
+import {
+  getProgrammeName,
+  getProgrammeClassName,
+} from "@/server/actions/programme";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
@@ -39,18 +43,27 @@ const CollegeBreadCrumb = () => {
     async function fetchNames() {
       const names = [];
       for (let i = 0; i < adjustedPathSegments.length; i++) {
-        if (i === 1) {
-          // index of collegeId
-          const collegeName = await getCollegeName(adjustedPathSegments[i]);
-          names.push(collegeName);
-        } else if (i === 2) {
-          // index of departmentId
-          const departmentName = await getDepartmentName(
-            adjustedPathSegments[i],
-          );
-          names.push(departmentName);
-        } else {
-          names.push(adjustedPathSegments[i]);
+        try {
+          let name;
+          if (i === 1) {
+            // index of collegeId
+            name = await getCollegeName(adjustedPathSegments[i]);
+          } else if (i === 2) {
+            // index of departmentId
+            name = await getDepartmentName(adjustedPathSegments[i]);
+          } else if (i === 3) {
+            // index of departmentId
+            name = await getProgrammeName(adjustedPathSegments[i]);
+          } else if (i === 4) {
+            // index of departmentId
+            name = await getProgrammeClassName(adjustedPathSegments[i]);
+          } else {
+            name = adjustedPathSegments[i];
+          }
+          names.push(name);
+        } catch (error) {
+          names.push("Error fetching data");
+          console.error(error);
         }
       }
       setSegmentNames(names);
@@ -60,7 +73,7 @@ const CollegeBreadCrumb = () => {
   }, [pathSegments]); // Only depend on pathSegments
 
   return (
-    <Breadcrumbs size="sm" variant="solid">
+    <Breadcrumbs variant="solid" size="sm">
       {segmentNames.map((name, index) => {
         const path = "/" + pathSegments.slice(0, index + 2).join("/");
         return (

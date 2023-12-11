@@ -73,6 +73,23 @@ const Page = async ({ params: { departmentId, collegeId } }: Props) => {
           <div className="p-6">
             <ul className="space-y-4">
               {response.data.map((programme) => (
+                <li
+                  key={programme.id}
+                  className="flex items-center justify-between border-b border-gray-200 px-4 py-3 text-lg font-medium dark:border-gray-800"
+                >
+                  <Link
+                    href={`/management/colleges/${collegeId}/${departmentId}/${programme.id}`}
+                    className="text-blue-500 hover:underline"
+                  >
+                    {programme.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          {/* <div className="p-6">
+            <ul className="space-y-4">
+              {response.data.map((programme) => (
                 <li key={programme.id} className="py-2 font-medium">
                   <Link
                     href={`/management/colleges/${collegeId}/${departmentId}/${programme.id}`}
@@ -98,7 +115,7 @@ const Page = async ({ params: { departmentId, collegeId } }: Props) => {
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
         </div>
         <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
           <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">

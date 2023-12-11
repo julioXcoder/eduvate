@@ -3,11 +3,7 @@ import prisma from "@/prisma/db";
 import { revalidatePath } from "next/cache";
 
 const getColleges = async () => {
-  const colleges = await prisma.college.findMany({
-    where: {
-      universityId: "6576023a9fe77e8c717afb5f",
-    },
-  });
+  const colleges = await prisma.college.findMany();
 
   return colleges;
 };
@@ -20,11 +16,15 @@ const Page = async () => {
 
     const collegeName = formData.get("collegeName") as string;
 
+    const university = await prisma.university.findFirst();
+
     if (!collegeName) throw new Error("College name required");
+
+    if (!university) throw new Error("No university found");
 
     await prisma.college.create({
       data: {
-        universityId: "6576023a9fe77e8c717afb5f",
+        universityId: university.id,
         name: collegeName,
       },
     });

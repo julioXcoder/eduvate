@@ -3,6 +3,7 @@
 import prisma from "@/prisma/db";
 import { Programme } from "@/types/programme";
 import { revalidatePath } from "next/cache";
+import { mapRomanToYear } from "@/utils/mapRomanToYear";
 
 export const addProgramme = async (
   programme: Programme,
@@ -43,4 +44,28 @@ export const addProgramme = async (
   }
 
   revalidatePath(`/management/colleges/${collegeId}/${departmentId}`);
+};
+
+export const getProgrammeName = async (programmeId: string) => {
+  const programme = await prisma.programme.findUnique({
+    where: {
+      id: programmeId,
+    },
+  });
+
+  if (!programme) return "Not Found";
+
+  return programme.name;
+};
+
+export const getProgrammeClassName = async (programmeClassId: string) => {
+  const programmeClass = await prisma.programmeClass.findUnique({
+    where: {
+      id: programmeClassId,
+    },
+  });
+
+  if (!programmeClass) return "Not Found";
+
+  return mapRomanToYear(programmeClass.name);
 };
