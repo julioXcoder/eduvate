@@ -38,7 +38,9 @@ const NewProgramme = () => {
   const { collegeId, departmentId } = params;
 
   const onSubmit = async (formData: FormData) => {
-    await addProgramme(formData, departmentId as string);
+    setIsLoading(true);
+    await addProgramme(formData, departmentId as string, collegeId as string);
+    setIsLoading(false);
   };
 
   return (

@@ -1,8 +1,17 @@
 import prisma from "@/prisma/db";
 import Link from "next/link";
-import { revalidatePath } from "next/cache";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import NewProgramme from "./newProgramme";
+import { mapRomanToYear } from "@/utils/mapRomanToYear";
+
+type Programme = {
+  id: string;
+  name: string;
+  classes: {
+    id: string;
+    name: string;
+  }[];
+};
 
 const getDepartment = async (departmentId: string) => {
   const department = await prisma.department.findUnique({
@@ -13,13 +22,35 @@ const getDepartment = async (departmentId: string) => {
 
   if (!department) throw new Error("Department not found.");
 
+  const data: Programme[] = [];
+
   const programmes = await prisma.programme.findMany({
     where: {
       departmentId: department.id,
     },
   });
 
-  return { department, programmes };
+  for (const programme of programmes) {
+    const programmeClasses = await prisma.programmeClass.findMany({
+      where: {
+        programmeId: programme.id,
+      },
+    });
+
+    // Map programme classes to years
+    const classes = programmeClasses.map((programmeClass) => ({
+      id: programmeClass.id,
+      name: mapRomanToYear(programmeClass.name),
+    }));
+
+    data.push({
+      id: programme.id,
+      name: programme.name,
+      classes,
+    });
+  }
+
+  return { department, data };
 };
 
 interface Props {
@@ -27,7 +58,7 @@ interface Props {
 }
 
 const Page = async ({ params: { departmentId, collegeId } }: Props) => {
-  const data = await getDepartment(departmentId);
+  const response = await getDepartment(departmentId);
 
   return (
     <div>
@@ -41,7 +72,7 @@ const Page = async ({ params: { departmentId, collegeId } }: Props) => {
           Back
         </Link>
         <h1 className="mb-4 text-center text-3xl underline underline-offset-2">
-          {data.department.name}
+          {response.department.name}
         </h1>
       </div>
       <div className="grid gap-6 md:grid-cols-2">
@@ -51,17 +82,24 @@ const Page = async ({ params: { departmentId, collegeId } }: Props) => {
           </h1>
           <div className="mt-5 p-10">
             <ul className="flex max-w-xs flex-col divide-y divide-gray-200 dark:divide-gray-700">
-              {data.programmes.map((programme) => (
-                <li
-                  key={programme.id}
-                  className="inline-flex items-center gap-x-2 px-4 py-3 text-sm font-medium text-gray-800  dark:text-white"
-                >
-                  <Link
-                    className="hover:text-blue-600 hover:underline hover:decoration-blue-600"
-                    href={`/management/colleges/${collegeId}/${departmentId}`}
-                  >
-                    {programme.name}
-                  </Link>
+              {response.data.map((programme) => (
+                <li key={programme.id} className="py-2 font-medium">
+                  <h1>{programme.name}</h1>
+                  <ul className="flex flex-col">
+                    {programme.classes.map((programmeClass) => (
+                      <li
+                        className="inline-flex items-center gap-x-2 px-4 py-1 text-sm  font-light text-gray-800 dark:text-white"
+                        key={programmeClass.id}
+                      >
+                        <Link
+                          className="hover:text-blue-600 hover:underline hover:decoration-blue-600"
+                          href={`/management/colleges/${collegeId}/${departmentId}/${programmeClass.id}`}
+                        >
+                          {programmeClass.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
                 </li>
               ))}
             </ul>

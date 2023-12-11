@@ -2,10 +2,12 @@
 
 import prisma from "@/prisma/db";
 import { Programme } from "@/types/programme";
+import { revalidatePath } from "next/cache";
 
 export const addProgramme = async (
   programme: Programme,
   departmentId: string,
+  collegeId: string,
 ) => {
   const { name, code, duration, levelName, status, tuitionFee } = programme;
   const allProgrammeClasses = ["I", "II", "III", "IV"] as const;
@@ -39,4 +41,6 @@ export const addProgramme = async (
       },
     });
   }
+
+  revalidatePath(`/management/colleges/${collegeId}/${departmentId}`);
 };

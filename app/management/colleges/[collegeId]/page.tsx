@@ -43,7 +43,7 @@ const Page = async ({ params: { collegeId } }: Props) => {
       },
     });
 
-    revalidatePath(`/management/colleges${collegeId}`);
+    revalidatePath(`/management/colleges/${collegeId}`);
   }
 
   return (
