@@ -145,7 +145,7 @@ const NewStudentPage = () => {
   };
 
   return (
-    <div className="mx-auto px-36 py-8">
+    <div className="mx-auto px-5 py-8 md:px-20 xl:px-36">
       <h1 className="mb-6">Add new student</h1>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div>
@@ -223,6 +223,8 @@ const NewStudentPage = () => {
           </div>
           <div>
             <Input
+              isClearable
+              onClear={() => {}}
               {...register("lastName")}
               type="text"
               label="Last Name"

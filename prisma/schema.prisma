@@ -102,12 +102,6 @@ enum RoleName {
   STUDENT
 }
 
-enum LevelName {
-  DIPLOMA
-  BACHELOR
-  CERTIFICATE
-}
-
 enum ProgrammeClassName {
   I
   II
@@ -139,22 +133,25 @@ model Department {
 }
 
 model Programme {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  id           String              @id @default(auto()) @map("_id") @db.ObjectId
   name         String
-  level        LevelName
-  departmentId String    @db.ObjectId
+  levelName    String
+  code         String              @unique
+  duration     Int
+  status       ProgrammeStatusName
+  departmentId String              @db.ObjectId
   tuitionFee   Float
+}
+
+enum ProgrammeStatusName {
+  FULL_TIME
+  PART_TIME
 }
 
 model ProgrammeClass {
   id          String             @id @default(auto()) @map("_id") @db.ObjectId
   name        ProgrammeClassName
   programmeId String             @db.ObjectId
-}
-
-enum RegistrationStatusName {
-  REGISTERED
-  NOT_REGISTERED
 }
 
 model Semester {
@@ -208,6 +205,7 @@ model Course {
   name             String
   code             String   @unique
   credits          Int
+  CaMarks          Int
   resourceUrls     String[]
   programmeClassId String   @db.ObjectId
 }
