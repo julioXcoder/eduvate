@@ -228,7 +228,7 @@ function Page() {
             <h2 className="text-2xl font-bold uppercase text-gray-700 dark:text-gray-400">
               Student Basic Information
             </h2>
-            <div className="mb-6 grid gap-6 md:grid-cols-2">
+            <div className="my-6 grid gap-6 md:grid-cols-2">
               <div>
                 <Input
                   onChange={(event) =>
