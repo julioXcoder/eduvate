@@ -14,35 +14,79 @@ import {
 } from "@nextui-org/react";
 import Link from "next/link";
 
+const applicationTypes = [
+  { label: "Certificate", value: "certificate" },
+  { label: "Diploma", value: "diploma" },
+  { label: "Postgraduate Diploma", value: "postgraduateDiploma" },
+  { label: "Masters", value: "masters" },
+  { label: "phD", value: "phd" },
+];
+
+const applicantOrigins = [
+  { label: "Tanzania - NECTA", value: "necta" },
+  { label: "NON NECTA - Foreign", value: "foreign" },
+  { label: "Tanzania NECTA before 1988", value: "necta1988" },
+];
+
+const certificateEducationLevels = [
+  { label: "Form IV", value: "formIV" },
+  { label: "Veta NVA III", value: "vetaNVAIII" },
+];
+
+const diplomaEducationLevels = [
+  { label: "Form IV", value: "formIV" },
+  { label: "Veta NVA III", value: "vetaNVAIII" },
+  { label: "NTA Level 4", value: "ntaLevel4" },
+  { label: "Form VI", value: "formVI" },
+  { label: "NTA Level 5", value: "ntaLevel5" },
+];
+
+const postgraduateDiplomaEducationLevels = [
+  { label: "Degree", value: "degree" },
+];
+
+const mastersEducationLevels = [
+  { label: "Degree", value: "degree" },
+  { label: "Postgraduate Diploma", value: "postgraduateDiploma" },
+];
+
+const phdEducationLevels = [{ label: "Masters", value: "masters" }];
+
 const FormStep1Schema = z.object({});
 const FormStep2Schema = z.object({
   indexNumber: z.string().refine((val) => val.trim().length > 0, {
     message: "Form IV Index Number is required",
   }),
 });
-const FormStep3Schema = z.object({});
-const FormStep4Schema = z.object({});
-const FormStep5Schema = z.object({});
 
 type FormStep1 = z.infer<typeof FormStep1Schema>;
 type FormStep2 = z.infer<typeof FormStep2Schema>;
-type FormStep3 = z.infer<typeof FormStep3Schema>;
-type FormStep4 = z.infer<typeof FormStep4Schema>;
-type FormStep5 = z.infer<typeof FormStep5Schema>;
 
 const Page = () => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formSteps, setFormSteps] = useState<
-    (FormStep1 | FormStep2 | FormStep3 | FormStep4 | FormStep5)[]
-  >([{}, { indexNumber: "" }, {}, {}, {}]);
+  const [formSteps, setFormSteps] = useState<(FormStep1 | FormStep2)[]>([
+    {},
+    {},
+    {},
+    {},
+    {},
+    { indexNumber: "" },
+    {},
+  ]);
   const [errorMessage, setErrorMessage] = useState("");
+  const [selectedApplicationType, setSelectedApplicationType] = useState("");
+  const [selectedApplicantOrigin, setSelectedApplicantOrigin] = useState("");
+  const [selectedEducationLevel, setSelectedEducationLevel] = useState("");
+  const [completedOLevel, setCompletedOLevel] = useState<"yes" | "no" | "">("");
 
   const validationSchemas = [
     FormStep1Schema,
+    FormStep1Schema,
+    FormStep1Schema,
+    FormStep1Schema,
+    FormStep1Schema,
     FormStep2Schema,
-    FormStep3Schema,
-    FormStep4Schema,
-    FormStep5Schema,
+    FormStep1Schema,
   ];
 
   const handleInputChange = (
@@ -51,25 +95,74 @@ const Page = () => {
   ) => {
     const updatedFormSteps = [...formSteps];
 
-    if (currentStep === 1) {
+    if (currentStep === 5) {
       const updatedStep = {
         ...updatedFormSteps[currentStep],
         [field]: value,
       } as FormStep2;
-      updatedFormSteps[currentStep] = updatedStep;
-    } else if (currentStep === 2) {
-      const updatedStep = {
-        ...updatedFormSteps[currentStep],
-        [field]: value,
-      } as FormStep3;
       updatedFormSteps[currentStep] = updatedStep;
     }
 
     setFormSteps(updatedFormSteps);
   };
 
+  const handleApplicationTypeChange = (selectedOption: string) => {
+    setSelectedApplicationType(selectedOption);
+  };
+
+  const handleEducationLevelChange = (selectedOption: string) => {
+    setSelectedEducationLevel(selectedOption);
+  };
+
+  const handleApplicantOriginChange = (selectedOption: string) => {
+    setSelectedApplicantOrigin(selectedOption);
+  };
+
+  const handleOLevelChange = (selectedOption: string) => {
+    setCompletedOLevel(selectedOption as "yes" | "no" | "");
+  };
+
+  const getEducationLevels = (applicationType: string) => {
+    switch (applicationType) {
+      case "certificate":
+        return certificateEducationLevels;
+      case "diploma":
+        return diplomaEducationLevels;
+      case "postgraduateDiploma":
+        return postgraduateDiplomaEducationLevels;
+      case "masters":
+        return mastersEducationLevels;
+      case "phd":
+        return phdEducationLevels;
+      default:
+        return [];
+    }
+  };
+
   const handleNext = () => {
     const currentSchema = validationSchemas[currentStep];
+
+    if (currentStep === 1 && !selectedApplicationType) {
+      setErrorMessage("Please select an application type.");
+      return;
+    }
+
+    if (currentStep === 2) {
+      if (!completedOLevel) {
+        setErrorMessage("Please confirm if you have completed O Level.");
+        return;
+      } else if (completedOLevel === "no") {
+        setErrorMessage(
+          "Unfortunately, completion of O Level is a requirement for our university. Please check back when you have completed your O Level.",
+        );
+        return;
+      }
+    }
+
+    if (currentStep === 3 && !selectedApplicantOrigin) {
+      setErrorMessage("Please select Origin of Education.");
+      return;
+    }
 
     if (currentSchema) {
       try {
@@ -79,7 +172,13 @@ const Page = () => {
         if (currentStep < validationSchemas.length - 1) {
           setCurrentStep(currentStep + 1);
         } else {
-          console.log(formSteps);
+          let objectWithIndexNumber = formSteps.find(
+            (obj): obj is { indexNumber: string } => "indexNumber" in obj,
+          );
+          let indexNumber = objectWithIndexNumber
+            ? objectWithIndexNumber.indexNumber
+            : null;
+          console.log(indexNumber);
         }
       } catch (error) {
         if (error instanceof z.ZodError) {
@@ -100,6 +199,10 @@ const Page = () => {
 
   return (
     <div className="mx-auto mt-14 px-5 py-8 md:px-20 xl:px-36">
+      <h2 className="py-6 text-4xl font-semibold">
+        Online Application Step{" "}
+        {`(${currentStep + 1}/${validationSchemas.length})`}
+      </h2>
       <form action="">
         {currentStep === 0 && (
           <div className="grid gap-8 md:grid-cols-2">
@@ -114,14 +217,15 @@ const Page = () => {
             </div>
             <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
               <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
-                Welcome Note
+                Warm Welcome
               </h2>
               <div className="p-6">
                 <p>
-                  Welcome to our University Application Portal! We’re thrilled
-                  that you’re considering us for your academic journey. Our aim
-                  is to make your application process as smooth as possible.
-                  Ready to get started? Click ‘Next’ to proceed.
+                  Welcome to our University Application Portal! We’re delighted
+                  that you’re considering us for your academic journey. We
+                  promise to make your application process as smooth and
+                  enjoyable as possible. Ready to embark on this exciting
+                  journey? Click ‘Next’ to get started!
                 </p>
               </div>
             </div>
@@ -140,26 +244,35 @@ const Page = () => {
             </div>
             <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
               <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
-                Form IV Index Number
+                Choose Your Path
               </h2>
               <div className="p-6">
                 <p>
-                  Great! Let’s start with your Form IV Index Number. This is
-                  your unique identifier. Once you’ve registered with your Form
-                  IV Index Number, it’s set in stone and can’t be changed. So,
-                  please double-check to make sure it’s correct! When you’re
-                  ready, click ‘Next’.
+                  Fantastic! Your first step is to select the type of
+                  application. We offer a variety of programs such as
+                  Certificate, Diploma, Postgraduate Diploma, Masters, and PhD.
+                  Please choose the one that aligns with your academic
+                  aspirations from the dropdown menu. Remember, this is the
+                  start of your journey to success. Once you’ve made your
+                  selection, click ‘Next’.
                 </p>
-              </div>
-              <div className="p-6">
-                <Input
-                  onChange={(event) =>
-                    handleInputChange("indexNumber", event.currentTarget.value)
-                  }
-                  value={(formSteps[1] as FormStep2).indexNumber || ""}
-                  label=" Form IV Index Number"
-                  labelPlacement="outside"
-                />
+                <div className="my-3">
+                  <Select
+                    items={applicationTypes}
+                    label="Application Type"
+                    placeholder={selectedApplicationType}
+                    className="max-w-xs"
+                    onChange={(e) =>
+                      handleApplicationTypeChange(e.target.value)
+                    }
+                  >
+                    {(applicationType) => (
+                      <SelectItem key={applicationType.value}>
+                        {applicationType.label}
+                      </SelectItem>
+                    )}
+                  </Select>
+                </div>
               </div>
             </div>
           </div>
@@ -178,17 +291,33 @@ const Page = () => {
             </div>
             <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
               <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
-                Application Fee
+                O Level Completion Confirmation
               </h2>
               <div className="p-6">
                 <p>
-                  Next, let’s talk about the application fee. To process your
-                  application, we require a small fee. Please make sure to pay
-                  this within four days of starting your application. If the fee
-                  isn’t paid within this time, we’ll have to delete your account
-                  permanently. We don’t want that to happen, so please don’t
-                  forget! Click ‘Next’ when you’re ready to proceed.
+                  Great! Now, we need to confirm that you have completed your O
+                  level, as this is a requirement for our university. If you
+                  have completed it, please select ‘Yes’. This is your ticket to
+                  further academic exploration. If not, unfortunately, you may
+                  not be eligible to apply at this time. But don’t worry, there
+                  are always opportunities waiting for you. Click ‘Next’ when
+                  you’re ready.
                 </p>
+                <div className="my-3">
+                  <Select
+                    label="O Level Completion"
+                    placeholder={completedOLevel}
+                    className="max-w-xs"
+                    onChange={(e) => handleOLevelChange(e.target.value)}
+                  >
+                    <SelectItem key="yes" value="yes">
+                      Yes
+                    </SelectItem>
+                    <SelectItem key="no" value="no">
+                      No
+                    </SelectItem>
+                  </Select>
+                </div>
               </div>
             </div>
           </div>
@@ -206,10 +335,10 @@ const Page = () => {
             </div>
             <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
               <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
-                Choosing Your Programme
+                Origin of Education
               </h2>
               <div className="p-6">
-                <p>
+                {/* <p>
                   Almost there!. This is a big decision, and we want you to make
                   the right choice. So, before you select your programme, please
                   take some time to read through the{" "}
@@ -219,7 +348,31 @@ const Page = () => {
                   . They’ll give you a good idea of what we’re looking for and
                   help you choose the programme that’s right for you. When
                   you’re ready, click ‘Next’.
+                </p> */}
+                <p>
+                  Let’s move forward! We need to know if you have studied in
+                  Tanzania - NECTA or Tanzania NECTA before 1988, or if you are
+                  a foreign student. This helps us tailor your application
+                  process. Please select the appropriate option and click
+                  ‘Next’.
                 </p>
+                <div className="my-3">
+                  <Select
+                    items={applicantOrigins}
+                    label="Origin of Education"
+                    placeholder={selectedApplicantOrigin}
+                    className="max-w-xs"
+                    onChange={(e) =>
+                      handleApplicantOriginChange(e.target.value)
+                    }
+                  >
+                    {(applicantOrigin) => (
+                      <SelectItem key={applicantOrigin.value}>
+                        {applicantOrigin.label}
+                      </SelectItem>
+                    )}
+                  </Select>
+                </div>
               </div>
             </div>
           </div>
@@ -237,14 +390,94 @@ const Page = () => {
             </div>
             <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
               <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
-                Final Note
+                Highest Education Level
+              </h2>
+              <div className="p-6">
+                <h2 className="font-semibold">
+                  Now, let’s talk about your academic achievements!
+                </h2>
+                <p>
+                  {`Based on the application type you selected (${selectedApplicationType}), please choose your highest level of education from the dropdown menu. This will help us understand your academic background better. Remember, every step you’ve taken in your academic journey counts.`}
+                </p>
+                <div className="my-3">
+                  <Select
+                    items={getEducationLevels(selectedApplicationType)}
+                    label="Application Type"
+                    placeholder={selectedEducationLevel}
+                    className="max-w-xs"
+                    onChange={(e) => handleEducationLevelChange(e.target.value)}
+                  >
+                    {(item) => (
+                      <SelectItem key={item.value}>{item.label}</SelectItem>
+                    )}
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {currentStep === 5 && (
+          <div className="grid gap-8 md:grid-cols-2">
+            <div>
+              <Image
+                width={640}
+                height={427}
+                className="w-full rounded-xl"
+                src="/ApplicationImages/stepFive.jpg"
+                alt="Image Description"
+              />
+            </div>
+            <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
+              <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
+                Form IV Index Number
               </h2>
               <div className="p-6">
                 <p>
-                  You’re doing great! Remember, we’re here to help you every
-                  step of the way. If you have any questions or run into any
-                  issues, don’t hesitate to reach out. When you’re ready, click
-                  ‘Submit’ to finalize your application. Good luck!
+                  Excellent! Now, let’s register your Form IV Index Number. This
+                  is your unique identifier and cannot be changed once
+                  registered, so please double-check to make sure it’s correct!
+                  This is your unique academic fingerprint. When you’re ready,
+                  click ‘Next’.
+                </p>
+                <div className="p-6">
+                  <Input
+                    onChange={(event) =>
+                      handleInputChange(
+                        "indexNumber",
+                        event.currentTarget.value,
+                      )
+                    }
+                    value={(formSteps[5] as FormStep2).indexNumber || ""}
+                    label=" Form IV Index Number"
+                    labelPlacement="outside"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {currentStep === 6 && (
+          <div className="grid gap-8 md:grid-cols-2">
+            <div>
+              <Image
+                width={640}
+                height={427}
+                className="w-full rounded-xl"
+                src="/ApplicationImages/stepOne.jpg"
+                alt="Image Description"
+              />
+            </div>
+            <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
+              <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
+                Warm Welcome
+              </h2>
+              <div className="p-6">
+                <p>
+                  Welcome to our University Application Portal! We’re delighted
+                  that you’re considering us for your academic journey. We
+                  promise to make your application process as smooth and
+                  enjoyable as possible. Ready to embark on this exciting
+                  journey? Click ‘Next’ to get started!
                 </p>
               </div>
             </div>
@@ -257,9 +490,7 @@ const Page = () => {
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        <p>
-          {currentStep + 1}/{validationSchemas.length}
-        </p>
+        <div></div>
         <div className="flex gap-x-2">
           <button
             className={`px-4 py-2 ${
