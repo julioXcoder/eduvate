@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { z } from "zod";
 import Image from "next/image";
+import z from "zod";
 import {
   Input,
   Button,
@@ -11,8 +11,13 @@ import {
   Radio,
   RadioGroup,
   Textarea,
+  Spinner,
 } from "@nextui-org/react";
+import { useForm, FieldValues } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { MdOutlineErrorOutline } from "react-icons/md";
+import { IoMdTrash, IoMdEye, IoMdEyeOff } from "react-icons/io";
 
 const applicationTypes = [
   { label: "Certificate", value: "certificate" },
@@ -52,74 +57,80 @@ const mastersEducationLevels = [
 
 const phdEducationLevels = [{ label: "Masters", value: "masters" }];
 
-const FormStep1Schema = z.object({});
-const FormStep2Schema = z.object({
-  indexNumber: z.string().refine((val) => val.trim().length > 0, {
-    message: "Form IV Index Number is required",
-  }),
-});
+const phoneRegex = /^\+\d{3}\d{6,9}$/;
 
-type FormStep1 = z.infer<typeof FormStep1Schema>;
-type FormStep2 = z.infer<typeof FormStep2Schema>;
+const schema = z
+  .object({
+    userName: z.string().min(1, { message: "User name is required" }),
+    firstName: z.string().min(1, { message: "First name is required" }),
+    lastName: z.string().min(1, { message: "Last name is required" }),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters long" }),
+    confirmPassword: z.string().min(8, {
+      message: "Confirm password must be at least 8 characters long",
+    }),
+    phone: z
+      .string()
+      .optional()
+      .refine((value) => {
+        if (!value) return true;
+        return phoneRegex.test(value);
+      }, "Please enter your phone number in the following format: '+255123456789"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type FormData = z.infer<typeof schema>;
 
 const Page = () => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formSteps, setFormSteps] = useState<(FormStep1 | FormStep2)[]>([
-    {},
-    {},
-    {},
-    {},
-    {},
-    { indexNumber: "" },
-    {},
-  ]);
   const [errorMessage, setErrorMessage] = useState("");
-  const [selectedApplicationType, setSelectedApplicationType] = useState("");
-  const [selectedApplicantOrigin, setSelectedApplicantOrigin] = useState("");
+  const [selectedApplicationType, setSelectedApplicationType] = useState<{
+    label: string;
+    value: string;
+  } | null>(null);
+  const [selectedApplicantOrigin, setSelectedApplicantOrigin] = useState<{
+    label: string;
+    value: string;
+  } | null>(null);
   const [selectedEducationLevel, setSelectedEducationLevel] = useState("");
   const [completedOLevel, setCompletedOLevel] = useState<"yes" | "no" | "">("");
+  const [formIVIndex, setFormIVIndex] = useState("");
+  const [loading, setIsLoading] = useState(false);
+  const [studentInformation, setStudentInformation] = useState({
+    firstName: "Naruto",
+    lastName: "Uzumaki",
+  });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<FormData>({ resolver: zodResolver(schema) });
+  const [showPass, setShowPass] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const validationSchemas = [
-    FormStep1Schema,
-    FormStep1Schema,
-    FormStep1Schema,
-    FormStep1Schema,
-    FormStep1Schema,
-    FormStep2Schema,
-    FormStep1Schema,
-  ];
+  const toggleShowPass = () => setShowPass(!showPass);
+  const toggleConfirmPass = () => setShowConfirm(!showConfirm);
 
-  const handleInputChange = (
-    field: keyof FormStep2,
-    value: string | number,
-  ) => {
-    const updatedFormSteps = [...formSteps];
-
-    if (currentStep === 5) {
-      const updatedStep = {
-        ...updatedFormSteps[currentStep],
-        [field]: value,
-      } as FormStep2;
-      updatedFormSteps[currentStep] = updatedStep;
-    }
-
-    setFormSteps(updatedFormSteps);
-  };
+  let pages: any[] = new Array(7);
 
   const handleApplicationTypeChange = (selectedOption: string) => {
-    setSelectedApplicationType(selectedOption);
-  };
+    const selectedApplicationTypeObject = applicationTypes.find(
+      (applicationType) => applicationType.value === selectedOption,
+    );
 
-  const handleEducationLevelChange = (selectedOption: string) => {
-    setSelectedEducationLevel(selectedOption);
+    setSelectedApplicationType(selectedApplicationTypeObject || null);
   };
 
   const handleApplicantOriginChange = (selectedOption: string) => {
-    setSelectedApplicantOrigin(selectedOption);
-  };
+    const selectedApplicationOriginObject = applicantOrigins.find(
+      (applicationOrigin) => applicationOrigin.value === selectedOption,
+    );
 
-  const handleOLevelChange = (selectedOption: string) => {
-    setCompletedOLevel(selectedOption as "yes" | "no" | "");
+    setSelectedApplicantOrigin(selectedApplicationOriginObject || null);
   };
 
   const getEducationLevels = (applicationType: string) => {
@@ -139,8 +150,8 @@ const Page = () => {
     }
   };
 
-  const handleNext = () => {
-    const currentSchema = validationSchemas[currentStep];
+  const handleNext = async () => {
+    setErrorMessage("");
 
     if (currentStep === 1 && !selectedApplicationType) {
       setErrorMessage("Please select an application type.");
@@ -164,27 +175,21 @@ const Page = () => {
       return;
     }
 
-    if (currentSchema) {
-      try {
-        currentSchema.parse(formSteps[currentStep]);
-        setErrorMessage("");
-
-        if (currentStep < validationSchemas.length - 1) {
-          setCurrentStep(currentStep + 1);
-        } else {
-          let objectWithIndexNumber = formSteps.find(
-            (obj): obj is { indexNumber: string } => "indexNumber" in obj,
-          );
-          let indexNumber = objectWithIndexNumber
-            ? objectWithIndexNumber.indexNumber
-            : null;
-          console.log(indexNumber);
-        }
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          setErrorMessage(error.errors[0]?.message || "");
-        }
+    if (currentStep === 5) {
+      if (!formIVIndex) {
+        setErrorMessage("Please Enter form IV index.");
+        return;
+      } else {
+        setIsLoading(true);
+        await new Promise((resolve) => setTimeout(resolve, 6000));
+        setIsLoading(false);
       }
+    }
+
+    if (currentStep < pages.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      console.log(formIVIndex);
     }
   };
 
@@ -194,16 +199,28 @@ const Page = () => {
     }
   };
 
-  const isLastStep = currentStep === validationSchemas.length - 1;
+  const onSubmit = async (formData: FormData) => {
+    setIsLoading(true);
+
+    try {
+      const newData = { ...formData, formIVIndex };
+      console.log("form data:", newData);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const isLastStep = currentStep === pages.length - 1;
   const isFirstStep = currentStep === 0;
 
   return (
     <div className="mx-auto mt-14 px-5 py-8 md:px-20 xl:px-36">
       <h2 className="py-6 text-4xl font-semibold">
-        Online Application Step{" "}
-        {`(${currentStep + 1}/${validationSchemas.length})`}
+        Online Application Step {`(${currentStep + 1}/${pages.length})`}
       </h2>
-      <form action="">
+      <div>
         {currentStep === 0 && (
           <div className="grid gap-8 md:grid-cols-2">
             <div>
@@ -260,7 +277,7 @@ const Page = () => {
                   <Select
                     items={applicationTypes}
                     label="Application Type"
-                    placeholder={selectedApplicationType}
+                    placeholder={selectedApplicationType?.label}
                     className="max-w-xs"
                     onChange={(e) =>
                       handleApplicationTypeChange(e.target.value)
@@ -308,7 +325,9 @@ const Page = () => {
                     label="O Level Completion"
                     placeholder={completedOLevel}
                     className="max-w-xs"
-                    onChange={(e) => handleOLevelChange(e.target.value)}
+                    onChange={(e) =>
+                      setCompletedOLevel(e.target.value as "yes" | "no" | "")
+                    }
                   >
                     <SelectItem key="yes" value="yes">
                       Yes
@@ -360,7 +379,7 @@ const Page = () => {
                   <Select
                     items={applicantOrigins}
                     label="Origin of Education"
-                    placeholder={selectedApplicantOrigin}
+                    placeholder={selectedApplicantOrigin?.label}
                     className="max-w-xs"
                     onChange={(e) =>
                       handleApplicantOriginChange(e.target.value)
@@ -397,15 +416,17 @@ const Page = () => {
                   Now, let’s talk about your academic achievements!
                 </h2>
                 <p>
-                  {`Based on the application type you selected (${selectedApplicationType}), please choose your highest level of education from the dropdown menu. This will help us understand your academic background better. Remember, every step you’ve taken in your academic journey counts.`}
+                  {`Based on the application type you selected (${selectedApplicationType?.label}), please choose your highest level of education from the dropdown menu. This will help us understand your academic background better. Remember, every step you’ve taken in your academic journey counts.`}
                 </p>
                 <div className="my-3">
                   <Select
-                    items={getEducationLevels(selectedApplicationType)}
-                    label="Application Type"
+                    items={getEducationLevels(
+                      selectedApplicationType?.value || "",
+                    )}
+                    label="Education Level"
                     placeholder={selectedEducationLevel}
                     className="max-w-xs"
-                    onChange={(e) => handleEducationLevelChange(e.target.value)}
+                    onChange={(e) => setSelectedEducationLevel(e.target.value)}
                   >
                     {(item) => (
                       <SelectItem key={item.value}>{item.label}</SelectItem>
@@ -442,12 +463,9 @@ const Page = () => {
                 <div className="p-6">
                   <Input
                     onChange={(event) =>
-                      handleInputChange(
-                        "indexNumber",
-                        event.currentTarget.value,
-                      )
+                      setFormIVIndex(event.currentTarget.value)
                     }
-                    value={(formSteps[5] as FormStep2).indexNumber || ""}
+                    value={formIVIndex}
                     label=" Form IV Index Number"
                     labelPlacement="outside"
                   />
@@ -459,56 +477,193 @@ const Page = () => {
         {currentStep === 6 && (
           <div className="grid gap-8 md:grid-cols-2">
             <div>
-              <Image
-                width={640}
-                height={427}
-                className="w-full rounded-xl"
-                src="/ApplicationImages/stepOne.jpg"
-                alt="Image Description"
-              />
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <div>
+                  <Input
+                    readOnly
+                    {...register("userName")}
+                    type="text"
+                    value={formIVIndex}
+                    label="User Name"
+                    labelPlacement="outside"
+                  />
+                  {errors.userName?.message && (
+                    <span className="flex items-center gap-x-1 text-red-600">
+                      <MdOutlineErrorOutline />
+                      {errors.userName.message}
+                    </span>
+                  )}
+                </div>
+                <div className="my-6 grid gap-6 md:grid-cols-2">
+                  <div>
+                    <Input
+                      readOnly
+                      {...register("firstName")}
+                      type="text"
+                      value={studentInformation.firstName}
+                      label="First Name"
+                      placeholder="Enter First Name"
+                      labelPlacement="outside"
+                    />
+                    {errors.firstName?.message && (
+                      <span className="flex items-center gap-x-1 text-red-600">
+                        <MdOutlineErrorOutline />
+                        {errors.firstName.message}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <Input
+                      readOnly
+                      {...register("lastName")}
+                      value={studentInformation.lastName}
+                      type="text"
+                      label="Last Name"
+                      placeholder="Enter Last Name"
+                      labelPlacement="outside"
+                    />
+
+                    {errors.lastName?.message && (
+                      <span className="flex items-center gap-x-1 text-red-600">
+                        <MdOutlineErrorOutline />
+                        {errors.lastName.message}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <Input
+                      {...register("password")}
+                      endContent={
+                        <button
+                          className="focus:outline-none"
+                          type="button"
+                          onClick={toggleShowPass}
+                        >
+                          {showPass ? (
+                            <IoMdEyeOff className="pointer-events-none text-2xl text-default-400" />
+                          ) : (
+                            <IoMdEye className="pointer-events-none text-2xl text-default-400" />
+                          )}
+                        </button>
+                      }
+                      type={showPass ? "text" : "password"}
+                      label="Password"
+                      placeholder="Enter password"
+                      labelPlacement="outside"
+                    />
+
+                    {errors.password?.message && (
+                      <span className="flex items-center gap-x-1 text-red-600">
+                        <MdOutlineErrorOutline />
+                        {errors.password.message}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <Input
+                      {...register("confirmPassword")}
+                      endContent={
+                        <button
+                          className="focus:outline-none"
+                          type="button"
+                          onClick={toggleConfirmPass}
+                        >
+                          {showConfirm ? (
+                            <IoMdEyeOff className="pointer-events-none text-2xl text-default-400" />
+                          ) : (
+                            <IoMdEye className="pointer-events-none text-2xl text-default-400" />
+                          )}
+                        </button>
+                      }
+                      type={showConfirm ? "text" : "password"}
+                      label="Confirm Password"
+                      placeholder="Confirm Password"
+                      labelPlacement="outside"
+                    />
+
+                    {errors.confirmPassword?.message && (
+                      <span className="flex items-center gap-x-1 text-red-600">
+                        <MdOutlineErrorOutline />
+                        {errors.confirmPassword.message}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <Input
+                      {...register("phone")}
+                      type="text"
+                      label="Phone Number"
+                      placeholder="Enter your phone Number"
+                      labelPlacement="outside"
+                    />
+
+                    {errors.phone?.message && (
+                      <span className="flex items-center gap-x-1 text-red-600">
+                        <MdOutlineErrorOutline />
+                        {errors.phone.message}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button isDisabled={loading} color="danger">
+                    Cancel Application
+                  </Button>
+                  <Button isDisabled={loading} type="submit" color="success">
+                    {loading ? "Submitting..." : "Submit"}
+                  </Button>
+                </div>
+              </form>
             </div>
             <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
               <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
-                Warm Welcome
+                Account Creation
               </h2>
               <div className="p-6">
                 <p>
-                  Welcome to our University Application Portal! We’re delighted
-                  that you’re considering us for your academic journey. We
-                  promise to make your application process as smooth and
-                  enjoyable as possible. Ready to embark on this exciting
-                  journey? Click ‘Next’ to get started!
+                  Almost there! Now, let’s create your account. This will be
+                  your gateway to complete the application process and beyond.
+                  Please provide your contact information, including your phone
+                  number and email address. Make sure they are both correct as
+                  we will use them for all future communications. Next, create a
+                  password for your account and confirm it. Remember, your
+                  password should be strong and secure to protect your account.
+                  Your username will be your Form IV Index Number. This is to
+                  ensure uniqueness and easy recall. Once you’ve filled in all
+                  the information, click ‘Submit’
                 </p>
               </div>
             </div>
           </div>
         )}
-      </form>
+      </div>
 
       <div className="my-2 flex w-full justify-end">
         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+        {loading && !errorMessage && (
+          <div className="flex gap-3 text-blue-500">
+            <span>
+              Please hold on while we verify your Form IV index. We appreciate
+              your patience.
+            </span>{" "}
+            <Spinner size="sm" />
+          </div>
+        )}
       </div>
 
       <div className="mt-4 flex items-center justify-between">
         <div></div>
-        <div className="flex gap-x-2">
-          <button
-            className={`px-4 py-2 ${
-              isFirstStep ? "hidden bg-gray-400" : "bg-blue-500"
-            } rounded text-white`}
+        <div className={`flex gap-x-2 ${isLastStep ? "hidden" : ""}`}>
+          <Button
+            className={`${isFirstStep ? "hidden bg-gray-400" : "bg-blue-500"}`}
             onClick={handleBack}
-            disabled={isFirstStep}
+            disabled={isFirstStep || loading}
           >
             Back
-          </button>
-          <button
-            className={`px-4 py-2 ${
-              isLastStep ? "bg-green-500" : "bg-blue-500"
-            } rounded text-white`}
-            onClick={handleNext}
-          >
-            {isLastStep ? "Submit" : "Next"}
-          </button>
+          </Button>
+          <Button onClick={handleNext} disabled={loading}>
+            Next
+          </Button>
         </div>
       </div>
     </div>
