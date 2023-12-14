@@ -61,7 +61,7 @@ const phoneRegex = /^\+\d{3}\d{6,9}$/;
 
 const schema = z
   .object({
-    userName: z.string().min(1, { message: "User name is required" }),
+    userName: z.string().min(1, { message: "username  is required" }),
     firstName: z.string().min(1, { message: "First name is required" }),
     lastName: z.string().min(1, { message: "Last name is required" }),
     password: z
@@ -177,7 +177,10 @@ const Page = () => {
 
     if (currentStep === 5) {
       if (!formIVIndex) {
-        setErrorMessage("Please Enter form IV index.");
+        setErrorMessage(
+          "Kindly provide your Form IV Index Number. It's crucial for us to proceed with your application.",
+        );
+
         return;
       } else {
         setIsLoading(true);
@@ -255,7 +258,7 @@ const Page = () => {
                 width={640}
                 height={427}
                 className="w-full rounded-xl"
-                src="/ApplicationImages/stepTwo.jpg"
+                src="/ApplicationImages/choosePath.jpg"
                 alt="Image Description"
               />
             </div>
@@ -302,7 +305,7 @@ const Page = () => {
                 width={640}
                 height={427}
                 className="w-full rounded-xl"
-                src="/ApplicationImages/stepThree.jpg"
+                src="/ApplicationImages/form4.jpg"
                 alt="Image Description"
               />
             </div>
@@ -348,7 +351,7 @@ const Page = () => {
                 width={640}
                 height={427}
                 className="w-full rounded-xl"
-                src="/ApplicationImages/stepFour.jpg"
+                src="/ApplicationImages/EducationOrigin.jpg"
                 alt="Image Description"
               />
             </div>
@@ -403,7 +406,7 @@ const Page = () => {
                 width={640}
                 height={427}
                 className="w-full rounded-xl"
-                src="/ApplicationImages/stepFive.jpg"
+                src="/ApplicationImages/HighestEducation.jpg"
                 alt="Image Description"
               />
             </div>
@@ -444,7 +447,7 @@ const Page = () => {
                 width={640}
                 height={427}
                 className="w-full rounded-xl"
-                src="/ApplicationImages/stepFive.jpg"
+                src="/ApplicationImages/stepTwo.jpg"
                 alt="Image Description"
               />
             </div>
@@ -476,6 +479,25 @@ const Page = () => {
         )}
         {currentStep === 6 && (
           <div className="grid gap-8 md:grid-cols-2">
+            <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
+              <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
+                Account Creation
+              </h2>
+              <div className="p-6">
+                <p>
+                  Almost there! Now, let’s create your account. This will be
+                  your gateway to complete the application process and beyond.
+                  Please provide your contact information, including your phone
+                  number and email address. Make sure they are both correct as
+                  we will use them for all future communications. Next, create a
+                  password for your account and confirm it. Remember, your
+                  password should be strong and secure to protect your account.
+                  Your username will be your Form IV Index Number. This is to
+                  ensure uniqueness and easy recall. Once you’ve filled in all
+                  the information, click ‘Submit’
+                </p>
+              </div>
+            </div>
             <div>
               <form onSubmit={handleSubmit(onSubmit)}>
                 <div>
@@ -484,7 +506,7 @@ const Page = () => {
                     {...register("userName")}
                     type="text"
                     value={formIVIndex}
-                    label="User Name"
+                    label="Username "
                     labelPlacement="outside"
                   />
                   {errors.userName?.message && (
@@ -615,25 +637,6 @@ const Page = () => {
                 </div>
               </form>
             </div>
-            <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
-              <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
-                Account Creation
-              </h2>
-              <div className="p-6">
-                <p>
-                  Almost there! Now, let’s create your account. This will be
-                  your gateway to complete the application process and beyond.
-                  Please provide your contact information, including your phone
-                  number and email address. Make sure they are both correct as
-                  we will use them for all future communications. Next, create a
-                  password for your account and confirm it. Remember, your
-                  password should be strong and secure to protect your account.
-                  Your username will be your Form IV Index Number. This is to
-                  ensure uniqueness and easy recall. Once you’ve filled in all
-                  the information, click ‘Submit’
-                </p>
-              </div>
-            </div>
           </div>
         )}
       </div>
@@ -655,13 +658,14 @@ const Page = () => {
         <div></div>
         <div className={`flex gap-x-2 ${isLastStep ? "hidden" : ""}`}>
           <Button
-            className={`${isFirstStep ? "hidden bg-gray-400" : "bg-blue-500"}`}
+            color="primary"
+            className={`${isFirstStep ? "hidden" : ""}`}
             onClick={handleBack}
             disabled={isFirstStep || loading}
           >
             Back
           </Button>
-          <Button onClick={handleNext} disabled={loading}>
+          <Button onClick={handleNext} disabled={loading} color="primary">
             Next
           </Button>
         </div>
