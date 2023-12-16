@@ -18,6 +18,19 @@ model Staff {
   role           RoleName
 }
 
+model Applicant {
+  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  formIVIndex     String              @unique
+  hashedPassword  String
+  firstName       String
+  lastName        String
+  status          ApplicantStatusName
+  role            RoleName            @default(APPLICANT)
+  controlNumberId String
+  phone           String
+  email           String?
+}
+
 model Student {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
   hashedPassword String
@@ -27,12 +40,41 @@ model Student {
   imageURL       String?
   role           RoleName @default(STUDENT)
   phone          String?
+  email          String?
+}
+
+model StudentAdmission {
+  id              String  @id @default(auto()) @map("_id") @db.ObjectId
+  studentId       String? @unique
+  admissionNumber Int     @unique
 }
 
 model StudentPositions {
   id        String         @id @default(auto()) @map("_id") @db.ObjectId
   studentID String         @unique
   positions PositionName[]
+}
+
+model ControlNumber {
+  id     String                  @id @default(auto()) @map("_id") @db.ObjectId
+  status ControlNumberStatusName @default(GENERATED)
+}
+
+enum ControlNumberStatusName {
+  GENERATED //The control number has been created but not yet used.
+  PENDING //The payment or transaction associated with the control number is awaiting completion.
+  COMPLETED //The payment or transaction associated with the control number has been successfully completed.
+  FAILED //The payment or transaction associated with the control number was not successful.
+  EXPIRED //The control number is no longer valid, typically due to a time limit.
+}
+
+enum ApplicantStatusName {
+  SUBMITTED //The application has been received but not yet reviewed
+  UNDER_REVIEW //The application is currently being reviewed by the admissions team.
+  WAITLISTED // The applicant meets the admission requirements but the program is full. If a spot opens up, they may be admitted.
+  ACCEPTED //The application has been approved. The applicant can now proceed to enrollment.
+  REJECTED //The application has not been approved. The applicant will not be able to enroll.
+  DEFERRED //The applicant has been accepted, but their admission has been postponed to a later date.
 }
 
 model StudentAcademicDetails {
@@ -100,6 +142,7 @@ enum RoleName {
   EXAMINATION_OFFICER
   LECTURE
   STUDENT
+  APPLICANT
 }
 
 enum ProgrammeClassName {
@@ -216,4 +259,12 @@ model CourseInstance {
   courseId   String @db.ObjectId
   semesterId String @db.ObjectId
   lecturerId String @db.ObjectId
+}
+
+// FIXME: FOR NECTA API
+model OLevelResult {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  firstName   String
+  lastName    String
+  formIVIndex String @unique
 }

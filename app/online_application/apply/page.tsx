@@ -115,7 +115,7 @@ const Page = () => {
   const toggleShowPass = () => setShowPass(!showPass);
   const toggleConfirmPass = () => setShowConfirm(!showConfirm);
 
-  let pages: any[] = new Array(7);
+  let pages: any[] = new Array(8);
 
   const handleApplicationTypeChange = (selectedOption: string) => {
     const selectedApplicationTypeObject = applicationTypes.find(
@@ -153,12 +153,12 @@ const Page = () => {
   const handleNext = async () => {
     setErrorMessage("");
 
-    if (currentStep === 1 && !selectedApplicationType) {
+    if (currentStep === 2 && !selectedApplicationType) {
       setErrorMessage("Please select an application type.");
       return;
     }
 
-    if (currentStep === 2) {
+    if (currentStep === 3) {
       if (!completedOLevel) {
         setErrorMessage("Please confirm if you have completed O Level.");
         return;
@@ -170,12 +170,12 @@ const Page = () => {
       }
     }
 
-    if (currentStep === 3 && !selectedApplicantOrigin) {
+    if (currentStep === 4 && !selectedApplicantOrigin) {
       setErrorMessage("Please select Origin of Education.");
       return;
     }
 
-    if (currentStep === 5) {
+    if (currentStep === 6) {
       if (!formIVIndex) {
         setErrorMessage(
           "Kindly provide your Form IV Index Number. It's crucial for us to proceed with your application.",
@@ -218,14 +218,16 @@ const Page = () => {
   const isLastStep = currentStep === pages.length - 1;
   const isFirstStep = currentStep === 0;
 
+  // Sorry, we can only accept new applicants. Your Form IV index already exists in our records.
+
   return (
-    <div className="mx-auto mt-14 px-5 py-8 md:px-20 xl:px-36">
+    <div className="px-5 py-8 md:px-20 xl:px-36">
       <h2 className="py-6 text-4xl font-semibold">
         Online Application Step {`(${currentStep + 1}/${pages.length})`}
       </h2>
       <div>
         {currentStep === 0 && (
-          <div className="grid gap-8 md:grid-cols-2">
+          <div className="grid items-center justify-center gap-8 md:grid-cols-2">
             <div>
               <Image
                 width={640}
@@ -241,17 +243,51 @@ const Page = () => {
               </h2>
               <div className="p-6">
                 <p>
-                  Welcome to our University Application Portal! We’re delighted
-                  that you’re considering us for your academic journey. We
-                  promise to make your application process as smooth and
-                  enjoyable as possible. Ready to embark on this exciting
-                  journey? Click ‘Next’ to get started!
+                  Welcome to our University Application Portal! We’re thrilled
+                  you’re considering us for your academic journey. Our
+                  institution is known for its diverse and enriching
+                  environment, designed to foster growth and learning. We’ve
+                  made our application process as straightforward as possible
+                  for your convenience. Remember, this isn’t just an
+                  application; it’s the first step towards a future filled with
+                  endless opportunities. Are you ready to embark on this
+                  exciting journey? If so, click ‘Next’ to begin.
                 </p>
               </div>
             </div>
           </div>
         )}
         {currentStep === 1 && (
+          <div className="grid gap-8 md:grid-cols-2">
+            <div>
+              <Image
+                width={640}
+                height={427}
+                className="w-full rounded-xl"
+                src="/ApplicationImages/applicationFee.jpg"
+                alt="Image Description"
+              />
+            </div>
+            <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
+              <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
+                Application Fee
+              </h2>
+              <div className="p-6">
+                <p>
+                  Next, let&apos;s talk about the application fee. To process
+                  your application, we require 10,000 Tanzanian Shillings to
+                  process your application. Please make sure to pay this within
+                  four days of starting your application. If the fee isn&apos;t
+                  paid within this time, we&apos;ll have to delete your account
+                  permanently. We don&apos;t want that to happen, so please
+                  don&apos;t forget! Click &apos;Next&apos; when you&apos;re
+                  ready to proceed.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        {currentStep === 2 && (
           <div className="grid gap-8 md:grid-cols-2">
             <div>
               <Image
@@ -269,12 +305,10 @@ const Page = () => {
               <div className="p-6">
                 <p>
                   Fantastic! Your first step is to select the type of
-                  application. We offer a variety of programs such as
-                  Certificate, Diploma, Postgraduate Diploma, Masters, and PhD.
-                  Please choose the one that aligns with your academic
-                  aspirations from the dropdown menu. Remember, this is the
-                  start of your journey to success. Once you’ve made your
-                  selection, click ‘Next’.
+                  application. We offer a variety of programs. Please choose the
+                  one that aligns with your academic aspirations from the
+                  dropdown menu. Remember, this is the start of your journey to
+                  success. Once you’ve made your selection, click ‘Next’.
                 </p>
                 <div className="my-3">
                   <Select
@@ -297,7 +331,7 @@ const Page = () => {
             </div>
           </div>
         )}
-        {currentStep === 2 && (
+        {currentStep === 3 && (
           <div className="grid gap-8 md:grid-cols-2">
             <div>
               {" "}
@@ -317,11 +351,10 @@ const Page = () => {
                 <p>
                   Great! Now, we need to confirm that you have completed your O
                   level, as this is a requirement for our university. If you
-                  have completed it, please select ‘Yes’. This is your ticket to
-                  further academic exploration. If not, unfortunately, you may
-                  not be eligible to apply at this time. But don’t worry, there
-                  are always opportunities waiting for you. Click ‘Next’ when
-                  you’re ready.
+                  have completed it, please select ‘Yes’. If not, unfortunately,
+                  you may not be eligible to apply at this time. But don’t
+                  worry, there are always opportunities waiting for you. Click
+                  ‘Next’ when you’re ready.
                 </p>
                 <div className="my-3">
                   <Select
@@ -344,7 +377,7 @@ const Page = () => {
             </div>
           </div>
         )}
-        {currentStep === 3 && (
+        {currentStep === 4 && (
           <div className="grid gap-8 md:grid-cols-2">
             <div>
               <Image
@@ -399,7 +432,7 @@ const Page = () => {
             </div>
           </div>
         )}
-        {currentStep === 4 && (
+        {currentStep === 5 && (
           <div className="grid gap-8 md:grid-cols-2">
             <div>
               <Image
@@ -440,7 +473,7 @@ const Page = () => {
             </div>
           </div>
         )}
-        {currentStep === 5 && (
+        {currentStep === 6 && (
           <div className="grid gap-8 md:grid-cols-2">
             <div>
               <Image
@@ -463,7 +496,7 @@ const Page = () => {
                   This is your unique academic fingerprint. When you’re ready,
                   click ‘Next’.
                 </p>
-                <div className="p-6">
+                <div className="p-3">
                   <Input
                     onChange={(event) =>
                       setFormIVIndex(event.currentTarget.value)
@@ -477,7 +510,7 @@ const Page = () => {
             </div>
           </div>
         )}
-        {currentStep === 6 && (
+        {currentStep === 7 && (
           <div className="grid gap-8 md:grid-cols-2">
             <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
               <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
@@ -641,7 +674,7 @@ const Page = () => {
         )}
       </div>
 
-      <div className="my-2 flex w-full justify-end">
+      <div className="my-4 flex w-full justify-end">
         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
         {loading && !errorMessage && (
           <div className="flex gap-3 text-blue-500">
