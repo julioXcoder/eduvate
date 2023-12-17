@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import z from "zod";
+import { getFormIVData, newApplicantAccount } from "@/server/actions/applicant";
 import {
   Input,
   Button,
@@ -70,13 +71,11 @@ const schema = z
     confirmPassword: z.string().min(8, {
       message: "Confirm password must be at least 8 characters long",
     }),
-    phone: z
-      .string()
-      .optional()
-      .refine((value) => {
-        if (!value) return true;
-        return phoneRegex.test(value);
-      }, "Please enter your phone number in the following format: '+255123456789"),
+    email: z.string().optional(),
+    phone: z.string().refine((value) => {
+      if (!value) return true;
+      return phoneRegex.test(value);
+    }, "Please enter your phone number in the following format: '+255123456789"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -101,8 +100,8 @@ const Page = () => {
   const [formIVIndex, setFormIVIndex] = useState("");
   const [loading, setIsLoading] = useState(false);
   const [studentInformation, setStudentInformation] = useState({
-    firstName: "Naruto",
-    lastName: "Uzumaki",
+    firstName: "",
+    lastName: "",
   });
   const {
     register,
@@ -184,7 +183,19 @@ const Page = () => {
         return;
       } else {
         setIsLoading(true);
-        await new Promise((resolve) => setTimeout(resolve, 6000));
+        const { data, error } = await getFormIVData(formIVIndex);
+
+        if (error) {
+          setErrorMessage(error);
+          setIsLoading(false);
+          return;
+        }
+
+        setStudentInformation({
+          firstName: data.firstName,
+          lastName: data.lastName,
+        });
+
         setIsLoading(false);
       }
     }
@@ -206,10 +217,21 @@ const Page = () => {
     setIsLoading(true);
 
     try {
-      const newData = { ...formData, formIVIndex };
-      console.log("form data:", newData);
+      const {
+        userName: formIVIndex,
+        password: hashedPassword,
+        ...rest
+      } = formData;
+
+      const response = await newApplicantAccount({
+        formIVIndex,
+        hashedPassword,
+        ...rest,
+      });
     } catch (error) {
-      console.log(error);
+      setErrorMessage(
+        "We’re sorry, but we were unable to create your account at this time. Please try again later, and if the problem persists, reach out to our support team for assistance.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -217,8 +239,6 @@ const Page = () => {
 
   const isLastStep = currentStep === pages.length - 1;
   const isFirstStep = currentStep === 0;
-
-  // Sorry, we can only accept new applicants. Your Form IV index already exists in our records.
 
   return (
     <div className="px-5 py-8 md:px-20 xl:px-36">
@@ -511,166 +531,188 @@ const Page = () => {
           </div>
         )}
         {currentStep === 7 && (
-          <div className="grid gap-8 md:grid-cols-2">
-            <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
-              <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
-                Account Creation
-              </h2>
-              <div className="p-6">
-                <p>
-                  Almost there! Now, let’s create your account. This will be
-                  your gateway to complete the application process and beyond.
-                  Please provide your contact information, including your phone
-                  number and email address. Make sure they are both correct as
-                  we will use them for all future communications. Next, create a
-                  password for your account and confirm it. Remember, your
-                  password should be strong and secure to protect your account.
-                  Your username will be your Form IV Index Number. This is to
-                  ensure uniqueness and easy recall. Once you’ve filled in all
-                  the information, click ‘Submit’
-                </p>
+          <>
+            <div className="grid gap-8 md:grid-cols-2">
+              <div className="rounded-lg bg-white shadow-md dark:bg-gray-900">
+                <h2 className="border-b border-gray-200 px-6 py-4 text-2xl font-semibold dark:border-gray-800">
+                  Account Creation
+                </h2>
+                <div className="p-6">
+                  <p>
+                    Almost there! Now, let’s create your account. This will be
+                    your gateway to complete the application process and beyond.
+                    Please provide your contact information, including your
+                    phone number and email address. Make sure they are both
+                    correct as we will use them for all future communications.
+                    Next, create a password for your account and confirm it.
+                    Remember, your password should be strong and secure to
+                    protect your account. Your username will be your Form IV
+                    Index Number. This is to ensure uniqueness and easy recall.
+                    Once you’ve filled in all the information, click ‘Create
+                    Account’
+                  </p>
+                </div>
+              </div>
+              <div>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <div>
+                    <Input
+                      readOnly
+                      {...register("userName")}
+                      type="text"
+                      value={formIVIndex}
+                      label="Username "
+                      labelPlacement="outside"
+                    />
+                    {errors.userName?.message && (
+                      <span className="flex items-center gap-x-1 text-red-600">
+                        <MdOutlineErrorOutline />
+                        {errors.userName.message}
+                      </span>
+                    )}
+                  </div>
+                  <div className="my-6 grid gap-6 md:grid-cols-2">
+                    <div>
+                      <Input
+                        readOnly
+                        {...register("firstName")}
+                        type="text"
+                        value={studentInformation.firstName}
+                        label="First Name"
+                        placeholder="Enter First Name"
+                        labelPlacement="outside"
+                      />
+                      {errors.firstName?.message && (
+                        <span className="flex items-center gap-x-1 text-red-600">
+                          <MdOutlineErrorOutline />
+                          {errors.firstName.message}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <Input
+                        readOnly
+                        {...register("lastName")}
+                        value={studentInformation.lastName}
+                        type="text"
+                        label="Last Name"
+                        placeholder="Enter Last Name"
+                        labelPlacement="outside"
+                      />
+
+                      {errors.lastName?.message && (
+                        <span className="flex items-center gap-x-1 text-red-600">
+                          <MdOutlineErrorOutline />
+                          {errors.lastName.message}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <Input
+                        {...register("password")}
+                        endContent={
+                          <button
+                            className="focus:outline-none"
+                            type="button"
+                            onClick={toggleShowPass}
+                          >
+                            {showPass ? (
+                              <IoMdEyeOff className="pointer-events-none text-2xl text-default-400" />
+                            ) : (
+                              <IoMdEye className="pointer-events-none text-2xl text-default-400" />
+                            )}
+                          </button>
+                        }
+                        type={showPass ? "text" : "password"}
+                        label="Password"
+                        placeholder="Enter password"
+                        labelPlacement="outside"
+                      />
+
+                      {errors.password?.message && (
+                        <span className="flex items-center gap-x-1 text-red-600">
+                          <MdOutlineErrorOutline />
+                          {errors.password.message}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <Input
+                        {...register("confirmPassword")}
+                        endContent={
+                          <button
+                            className="focus:outline-none"
+                            type="button"
+                            onClick={toggleConfirmPass}
+                          >
+                            {showConfirm ? (
+                              <IoMdEyeOff className="pointer-events-none text-2xl text-default-400" />
+                            ) : (
+                              <IoMdEye className="pointer-events-none text-2xl text-default-400" />
+                            )}
+                          </button>
+                        }
+                        type={showConfirm ? "text" : "password"}
+                        label="Confirm Password"
+                        placeholder="Confirm Password"
+                        labelPlacement="outside"
+                      />
+
+                      {errors.confirmPassword?.message && (
+                        <span className="flex items-center gap-x-1 text-red-600">
+                          <MdOutlineErrorOutline />
+                          {errors.confirmPassword.message}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <Input
+                        {...register("phone")}
+                        type="text"
+                        label="Phone Number"
+                        placeholder="Enter your phone Number"
+                        labelPlacement="outside"
+                      />
+
+                      {errors.phone?.message && (
+                        <span className="flex items-center gap-x-1 text-red-600">
+                          <MdOutlineErrorOutline />
+                          {errors.phone.message}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <Input
+                        {...register("email")}
+                        type="email"
+                        label="Email Address"
+                        placeholder="Enter your Email Address"
+                        labelPlacement="outside"
+                        description="The email field is optional"
+                      />
+
+                      {errors.email?.message && (
+                        <span className="flex items-center gap-x-1 text-red-600">
+                          <MdOutlineErrorOutline />
+                          {errors.email.message}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Link href="/online_application">
+                      <Button isDisabled={loading} color="danger">
+                        Cancel Application
+                      </Button>
+                    </Link>
+                    <Button isDisabled={loading} type="submit" color="success">
+                      {loading ? "Creating Account..." : "Create Account"}
+                    </Button>
+                  </div>
+                </form>
               </div>
             </div>
-            <div>
-              <form onSubmit={handleSubmit(onSubmit)}>
-                <div>
-                  <Input
-                    readOnly
-                    {...register("userName")}
-                    type="text"
-                    value={formIVIndex}
-                    label="Username "
-                    labelPlacement="outside"
-                  />
-                  {errors.userName?.message && (
-                    <span className="flex items-center gap-x-1 text-red-600">
-                      <MdOutlineErrorOutline />
-                      {errors.userName.message}
-                    </span>
-                  )}
-                </div>
-                <div className="my-6 grid gap-6 md:grid-cols-2">
-                  <div>
-                    <Input
-                      readOnly
-                      {...register("firstName")}
-                      type="text"
-                      value={studentInformation.firstName}
-                      label="First Name"
-                      placeholder="Enter First Name"
-                      labelPlacement="outside"
-                    />
-                    {errors.firstName?.message && (
-                      <span className="flex items-center gap-x-1 text-red-600">
-                        <MdOutlineErrorOutline />
-                        {errors.firstName.message}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <Input
-                      readOnly
-                      {...register("lastName")}
-                      value={studentInformation.lastName}
-                      type="text"
-                      label="Last Name"
-                      placeholder="Enter Last Name"
-                      labelPlacement="outside"
-                    />
-
-                    {errors.lastName?.message && (
-                      <span className="flex items-center gap-x-1 text-red-600">
-                        <MdOutlineErrorOutline />
-                        {errors.lastName.message}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <Input
-                      {...register("password")}
-                      endContent={
-                        <button
-                          className="focus:outline-none"
-                          type="button"
-                          onClick={toggleShowPass}
-                        >
-                          {showPass ? (
-                            <IoMdEyeOff className="pointer-events-none text-2xl text-default-400" />
-                          ) : (
-                            <IoMdEye className="pointer-events-none text-2xl text-default-400" />
-                          )}
-                        </button>
-                      }
-                      type={showPass ? "text" : "password"}
-                      label="Password"
-                      placeholder="Enter password"
-                      labelPlacement="outside"
-                    />
-
-                    {errors.password?.message && (
-                      <span className="flex items-center gap-x-1 text-red-600">
-                        <MdOutlineErrorOutline />
-                        {errors.password.message}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <Input
-                      {...register("confirmPassword")}
-                      endContent={
-                        <button
-                          className="focus:outline-none"
-                          type="button"
-                          onClick={toggleConfirmPass}
-                        >
-                          {showConfirm ? (
-                            <IoMdEyeOff className="pointer-events-none text-2xl text-default-400" />
-                          ) : (
-                            <IoMdEye className="pointer-events-none text-2xl text-default-400" />
-                          )}
-                        </button>
-                      }
-                      type={showConfirm ? "text" : "password"}
-                      label="Confirm Password"
-                      placeholder="Confirm Password"
-                      labelPlacement="outside"
-                    />
-
-                    {errors.confirmPassword?.message && (
-                      <span className="flex items-center gap-x-1 text-red-600">
-                        <MdOutlineErrorOutline />
-                        {errors.confirmPassword.message}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <Input
-                      {...register("phone")}
-                      type="text"
-                      label="Phone Number"
-                      placeholder="Enter your phone Number"
-                      labelPlacement="outside"
-                    />
-
-                    {errors.phone?.message && (
-                      <span className="flex items-center gap-x-1 text-red-600">
-                        <MdOutlineErrorOutline />
-                        {errors.phone.message}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button isDisabled={loading} color="danger">
-                    Cancel Application
-                  </Button>
-                  <Button isDisabled={loading} type="submit" color="success">
-                    {loading ? "Submitting..." : "Submit"}
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>
+          </>
         )}
       </div>
 
@@ -694,11 +736,11 @@ const Page = () => {
             color="primary"
             className={`${isFirstStep ? "hidden" : ""}`}
             onClick={handleBack}
-            disabled={isFirstStep || loading}
+            isDisabled={isFirstStep || loading}
           >
             Back
           </Button>
-          <Button onClick={handleNext} disabled={loading} color="primary">
+          <Button onClick={handleNext} isDisabled={loading} color="primary">
             Next
           </Button>
         </div>
