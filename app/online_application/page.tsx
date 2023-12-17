@@ -41,7 +41,7 @@ const Page = () => {
               <button className="my-3">
                 <Link
                   className="inline-flex items-center gap-x-2 rounded-lg border border-transparent bg-[#FFC107] px-4 py-3 text-sm font-semibold text-white hover:bg-yellow-500 disabled:pointer-events-none disabled:opacity-50 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600"
-                  href="/login"
+                  href="/applicant_portal/auth"
                 >
                   Resume Application
                 </Link>

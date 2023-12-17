@@ -2,7 +2,7 @@ export interface Applicant {
   firstName: string;
   lastName: string;
   formIVIndex: string;
-  hashedPassword: string;
+  password: string;
   phone: string;
   email?: string;
 }

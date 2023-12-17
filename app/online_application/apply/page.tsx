@@ -1,24 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import z from "zod";
 import { getFormIVData, newApplicantAccount } from "@/server/actions/applicant";
-import {
-  Input,
-  Button,
-  Select,
-  SelectItem,
-  Radio,
-  RadioGroup,
-  Textarea,
-  Spinner,
-} from "@nextui-org/react";
-import { useForm, FieldValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Button, Input, Select, SelectItem, Spinner } from "@nextui-org/react";
+import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 import { MdOutlineErrorOutline } from "react-icons/md";
-import { IoMdTrash, IoMdEye, IoMdEyeOff } from "react-icons/io";
+import z from "zod";
 
 const applicationTypes = [
   { label: "Certificate", value: "certificate" },
@@ -62,7 +54,7 @@ const phoneRegex = /^\+\d{3}\d{6,9}$/;
 
 const schema = z
   .object({
-    userName: z.string().min(1, { message: "username  is required" }),
+    formIVIndex: z.string().min(1, { message: "Form IV Index  is required" }),
     firstName: z.string().min(1, { message: "First name is required" }),
     lastName: z.string().min(1, { message: "Last name is required" }),
     password: z
@@ -73,7 +65,6 @@ const schema = z
     }),
     email: z.string().optional(),
     phone: z.string().refine((value) => {
-      if (!value) return true;
       return phoneRegex.test(value);
     }, "Please enter your phone number in the following format: '+255123456789"),
   })
@@ -85,6 +76,7 @@ const schema = z
 type FormData = z.infer<typeof schema>;
 
 const Page = () => {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedApplicationType, setSelectedApplicationType] = useState<{
@@ -217,17 +209,8 @@ const Page = () => {
     setIsLoading(true);
 
     try {
-      const {
-        userName: formIVIndex,
-        password: hashedPassword,
-        ...rest
-      } = formData;
-
-      const response = await newApplicantAccount({
-        formIVIndex,
-        hashedPassword,
-        ...rest,
-      });
+      const redirect = await newApplicantAccount(formData);
+      router.push(redirect);
     } catch (error) {
       setErrorMessage(
         "We’re sorry, but we were unable to create your account at this time. Please try again later, and if the problem persists, reach out to our support team for assistance.",
@@ -558,16 +541,16 @@ const Page = () => {
                   <div>
                     <Input
                       readOnly
-                      {...register("userName")}
+                      {...register("formIVIndex")}
                       type="text"
                       value={formIVIndex}
-                      label="Username "
+                      label="Form IV Index "
                       labelPlacement="outside"
                     />
-                    {errors.userName?.message && (
+                    {errors.formIVIndex?.message && (
                       <span className="flex items-center gap-x-1 text-red-600">
                         <MdOutlineErrorOutline />
-                        {errors.userName.message}
+                        {errors.formIVIndex.message}
                       </span>
                     )}
                   </div>
