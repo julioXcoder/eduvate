@@ -115,3 +115,31 @@ export const getApplicantData = async () => {
 
   return response;
 };
+
+export const authorizeApplicant = async ({
+  formIVIndex,
+  password,
+}: {
+  formIVIndex: string;
+  password: string;
+}) => {
+  const applicant = await prisma.applicant.findUnique({
+    where: {
+      formIVIndex,
+    },
+  });
+
+  if (!applicant) return { error: "Invalid form IV index or password" };
+
+  const match = await bcrypt.compare(password, applicant.hashedPassword);
+
+  if (!match) return { error: "Invalid form IV index or password" };
+
+  const data = { id: applicant.formIVIndex, role: applicant.role };
+
+  const token = await createToken(data);
+
+  cookies().set("token", token);
+
+  return { redirect: "/applicant_portal/dashboard" };
+};

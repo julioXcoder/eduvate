@@ -250,7 +250,7 @@ const Page = async () => {
               )}
           </div>
           <a
-            href="#"
+            href="/api/logout/applicant"
             className="mt-4 block rounded-lg bg-red-700 px-4 py-2 text-center font-medium text-white hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800"
           >
             Logout

@@ -1,10 +1,12 @@
 "use client";
 
-import { Input, Button } from "@nextui-org/react";
-
+import { Input, Button, Spinner } from "@nextui-org/react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { authorizeApplicant } from "@/server/actions/applicant";
 import z from "zod";
+import { useRouter } from "next/navigation";
 import { MdOutlineErrorOutline } from "react-icons/md";
 
 const schema = z.object({
@@ -17,14 +19,37 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const Page = () => {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const onSubmit = async (formData: FormData) => {
-    console.log(formData);
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const { redirect, error } = await authorizeApplicant(formData);
+
+      if (error) {
+        setError(error);
+      }
+
+      if (redirect) {
+        router.push(redirect);
+        return;
+      }
+    } catch (error) {
+      setError(
+        "We’re sorry, but we were unable to log you in at this time. Please try again later, and if the problem persists, reach out to our support team for assistance.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -47,7 +72,7 @@ const Page = () => {
                 className="w-full lg:max-w-xl"
                 onSubmit={handleSubmit(onSubmit)}
               >
-                <div>
+                <div className="mb-10">
                   <Input
                     {...register("formIVIndex")}
                     label="Form IV Index"
@@ -79,14 +104,31 @@ const Page = () => {
                   )}
                 </div>
 
+                <div className="my-6">
+                  {error && (
+                    <span className="flex items-center gap-x-1 text-red-600">
+                      <MdOutlineErrorOutline />
+                      {error}
+                    </span>
+                  )}
+                </div>
+
                 <div className="mt-8 md:flex md:items-center">
                   <Button
                     type="submit"
                     color="primary"
                     className="w-full md:w-1/2"
                     size="lg"
+                    isDisabled={isLoading}
                   >
-                    Sign in
+                    {isLoading ? (
+                      <>
+                        <Spinner color="white" className="mr-2" size="sm" />{" "}
+                        Signing in...
+                      </>
+                    ) : (
+                      "Sign in"
+                    )}
                   </Button>
 
                   <a
