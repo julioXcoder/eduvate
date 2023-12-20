@@ -186,6 +186,11 @@ model Programme {
   tuitionFee   Float
 }
 
+model programmeOlevelRequirement {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  programmeId String @db.ObjectId
+}
+
 enum ProgrammeStatusName {
   FULL_TIME
   PART_TIME
