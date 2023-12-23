@@ -60,6 +60,21 @@ model ControlNumber {
   status ControlNumberStatusName @default(GENERATED)
 }
 
+model csee {
+  code        String  @id @map("_id")
+  shortHand   String  @unique
+  name        String
+  isReligious Boolean
+}
+
+model admissionRequirement {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  programmeCode    String
+  requiredSubjects String[]
+  optionalSubjects String[]
+  allowReligious   Boolean
+}
+
 enum ControlNumberStatusName {
   GENERATED //The control number has been created but not yet used.
   PENDING //The payment or transaction associated with the control number is awaiting completion.
@@ -176,19 +191,13 @@ model Department {
 }
 
 model Programme {
-  id           String              @id @default(auto()) @map("_id") @db.ObjectId
+  code         String              @id @map("_id")
   name         String
   levelName    String
-  code         String              @unique
   duration     Int
   status       ProgrammeStatusName
   departmentId String              @db.ObjectId
   tuitionFee   Float
-}
-
-model programmeOlevelRequirement {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  programmeId String @db.ObjectId
 }
 
 enum ProgrammeStatusName {
@@ -197,9 +206,9 @@ enum ProgrammeStatusName {
 }
 
 model ProgrammeClass {
-  id          String             @id @default(auto()) @map("_id") @db.ObjectId
-  name        ProgrammeClassName
-  programmeId String             @db.ObjectId
+  id            String             @id @default(auto()) @map("_id") @db.ObjectId
+  name          ProgrammeClassName
+  programmeCode String
 }
 
 model Semester {
@@ -214,7 +223,7 @@ model TestResult {
   studentId        String
   marks            Int?
   componentId      String @db.ObjectId
-  courseInstanceId String @db.ObjectId
+  moduleInstanceId String @db.ObjectId
 }
 
 model TaskResult {
@@ -224,14 +233,14 @@ model TaskResult {
   componentId      String  @db.ObjectId
   submitted        Boolean @default(false)
   fileUrl          String?
-  courseInstanceId String  @db.ObjectId
+  moduleInstanceId String  @db.ObjectId
 }
 
 model UEResult {
   id               String @id @default(auto()) @map("_id") @db.ObjectId
   marks            Int?
   studentId        String @db.ObjectId
-  courseInstanceId String @db.ObjectId
+  moduleInstanceId String @db.ObjectId
 }
 
 model Component {
@@ -240,7 +249,7 @@ model Component {
   maxMarks         Int
   type             ComponentTypeName
   description      String?
-  courseInstanceId String            @db.ObjectId
+  moduleInstanceId String            @db.ObjectId
 }
 
 enum ComponentTypeName {
@@ -248,10 +257,9 @@ enum ComponentTypeName {
   TEST
 }
 
-model Course {
-  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+model Module {
+  code             String   @id @map("_id")
   name             String
-  code             String   @unique
   credits          Int
   CaMarks          Int
   resourceUrls     String[]
@@ -259,9 +267,9 @@ model Course {
 }
 
 //TODO: Add resources 
-model CourseInstance {
+model ModuleInstance {
   id         String @id @default(auto()) @map("_id") @db.ObjectId
-  courseId   String @db.ObjectId
+  moduleCode String
   semesterId String @db.ObjectId
   lecturerId String @db.ObjectId
 }

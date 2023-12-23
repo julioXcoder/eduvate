@@ -38,7 +38,7 @@ export const addProgramme = async (
     await prisma.programmeClass.create({
       data: {
         name: name,
-        programmeId: newProgramme.id,
+        programmeCode: newProgramme.code,
       },
     });
   }
@@ -46,10 +46,10 @@ export const addProgramme = async (
   revalidatePath(`/management/colleges/${collegeId}/${departmentId}`);
 };
 
-export const getProgrammeName = async (programmeId: string) => {
+export const getProgrammeName = async (programmeCode: string) => {
   const programme = await prisma.programme.findUnique({
     where: {
-      id: programmeId,
+      code: programmeCode,
     },
   });
 

@@ -34,13 +34,41 @@ export const fetchStudentResult = async (
 
     // Construct the URL for the NECTA website
     const url = `${baseURL}${yearOfCompletion}/csee/results/${candidateType.toLocaleLowerCase()}${schoolNumber}.htm`;
-
-    console.log(url);
-
     const { data } = await axios.get(url);
 
     const $ = cheerio.load(data);
-    const resultsTable = $("table").eq(2);
+    // const resultsTable = $("table").eq(2);
+
+    // const resultsTable = $('table[cellspacing="2"]').first();
+
+    // const resultsTable = $("table")
+    //   .filter(function () {
+    //     const firstTd = $(this).find("tbody tr:first-child td:first-child");
+    //     const targetText = firstTd.find("p b font").text().trim();
+    //     return targetText === "CNO";
+    //   })
+    //   .first();
+
+    const resultsTable = $("table")
+      .filter(function () {
+        const tds = $(this).find("tbody tr:first-child td");
+        if (tds.length < 5) {
+          return false;
+        }
+        const texts = tds
+          .map(function () {
+            return $(this).text().trim();
+          })
+          .get();
+        return (
+          texts[0] === "CNO" &&
+          texts[1] === "SEX" &&
+          texts[2] === "AGGT" &&
+          texts[3] === "DIV" &&
+          texts[4] === "DETAILED SUBJECTS"
+        );
+      })
+      .first();
 
     const students: StudentInfo[] = [];
 
@@ -80,8 +108,6 @@ export const fetchStudentResult = async (
     let candidate = `${candidateType}${schoolNumber}/${candidateNumber}`;
 
     let student = students.find((obj) => obj.CNO === candidate);
-
-    console.log(candidate);
 
     return student || null;
   } catch (error) {

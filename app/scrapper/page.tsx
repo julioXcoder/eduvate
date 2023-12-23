@@ -4,7 +4,7 @@ import scrapper from "@/utils/cseeScrapper";
 import { fetchStudentResult } from "@/utils/fetchStudentResult";
 
 const Page = async () => {
-  const studentResult = await fetchStudentResult("S0189/0003/2021");
+  const studentResult = await fetchStudentResult("S0179/0003/2022");
 
   return (
     <div className="overflow-x-auto">

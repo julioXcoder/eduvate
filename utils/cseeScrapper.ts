@@ -16,7 +16,14 @@ const scrapper = async () => {
     const { data } = await axios.get(url);
 
     const $ = cheerio.load(data);
-    const resultsTable = $("table").last();
+    // const resultsTable = $("table").last();
+    // const resultsTable = $(
+    //   "table > tbody > tr > td > p > b > font:contains('CNO')",
+    // )
+    //   .first()
+    //   .closest("table");
+
+    const resultsTable = $('table[cellspacing="2"]').first();
 
     const students: StudentInfo[] = [];
 
@@ -31,6 +38,7 @@ const scrapper = async () => {
           DIV: $(columns[3]).text().trim(),
           DETAILED_SUBJECTS: $(columns[4]).text().trim(),
         };
+        console.log("Info", studentInfo);
         students.push(studentInfo);
       }
     });

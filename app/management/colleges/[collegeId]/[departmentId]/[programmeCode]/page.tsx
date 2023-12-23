@@ -2,10 +2,10 @@ import prisma from "@/prisma/db";
 import Link from "next/link";
 import { mapRomanToYear } from "@/utils/mapRomanToYear";
 
-const getProgramme = async (programmeId: string) => {
+const getProgramme = async (programmeCode: string) => {
   const programme = await prisma.programme.findUnique({
     where: {
-      id: programmeId,
+      code: programmeCode,
     },
   });
 
@@ -13,7 +13,7 @@ const getProgramme = async (programmeId: string) => {
 
   const programmeClasses = await prisma.programmeClass.findMany({
     where: {
-      programmeId: programme.id,
+      programmeCode: programme.code,
     },
   });
 
@@ -23,17 +23,17 @@ const getProgramme = async (programmeId: string) => {
     name: mapRomanToYear(programmeClass.name),
   }));
 
-  return { id: programme.id, name: programme.name, classes };
+  return { code: programme.code, name: programme.name, classes };
 };
 
 interface Props {
-  params: { departmentId: string; collegeId: string; programmeId: string };
+  params: { departmentId: string; collegeId: string; programmeCode: string };
 }
 
 const Page = async ({
-  params: { departmentId, collegeId, programmeId },
+  params: { departmentId, collegeId, programmeCode },
 }: Props) => {
-  const response = await getProgramme(programmeId);
+  const response = await getProgramme(programmeCode);
 
   return (
     <div>
@@ -54,7 +54,7 @@ const Page = async ({
                     className="flex items-center justify-between border-b border-gray-200 px-4 py-3 text-lg font-medium dark:border-gray-800"
                   >
                     <Link
-                      href={`/management/colleges/${collegeId}/${departmentId}/${programmeId}/${programmeClass.id}`}
+                      href={`/management/colleges/${collegeId}/${departmentId}/${programmeCode}/${programmeClass.id}`}
                       className="text-blue-500 hover:underline"
                     >
                       {programmeClass.name}

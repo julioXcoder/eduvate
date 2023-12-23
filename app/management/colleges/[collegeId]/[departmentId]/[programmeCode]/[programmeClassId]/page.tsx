@@ -3,12 +3,12 @@ import Link from "next/link";
 import { mapRomanToYear } from "@/utils/mapRomanToYear";
 
 const getProgrammeData = async (
-  programmeId: string,
+  programmeCode: string,
   programmeClassId: string,
 ) => {
   const programme = await prisma.programme.findUnique({
     where: {
-      id: programmeId,
+      code: programmeCode,
     },
   });
 
@@ -30,15 +30,15 @@ interface Props {
   params: {
     departmentId: string;
     collegeId: string;
-    programmeId: string;
+    programmeCode: string;
     programmeClassId: string;
   };
 }
 
 const Page = async ({
-  params: { departmentId, collegeId, programmeId, programmeClassId },
+  params: { departmentId, collegeId, programmeCode, programmeClassId },
 }: Props) => {
-  const response = await getProgrammeData(programmeId, programmeClassId);
+  const response = await getProgrammeData(programmeCode, programmeClassId);
 
   return (
     <div>

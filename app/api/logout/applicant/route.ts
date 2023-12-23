@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { cookies } from "next/headers";
 
-export function GET(request: NextRequest) {
+export async function GET(request: NextRequest) {
   cookies().set("token", "");
 
   return redirect("/applicant_portal/auth");

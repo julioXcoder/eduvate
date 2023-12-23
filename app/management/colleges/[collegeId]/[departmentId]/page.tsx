@@ -5,7 +5,7 @@ import NewProgramme from "./newProgramme";
 import { mapRomanToYear } from "@/utils/mapRomanToYear";
 
 type Programme = {
-  id: string;
+  code: string;
   name: string;
   classes: {
     id: string;
@@ -33,7 +33,7 @@ const getDepartment = async (departmentId: string) => {
   for (const programme of programmes) {
     const programmeClasses = await prisma.programmeClass.findMany({
       where: {
-        programmeId: programme.id,
+        programmeCode: programme.code,
       },
     });
 
@@ -44,7 +44,7 @@ const getDepartment = async (departmentId: string) => {
     }));
 
     data.push({
-      id: programme.id,
+      code: programme.code,
       name: programme.name,
       classes,
     });
@@ -74,11 +74,11 @@ const Page = async ({ params: { departmentId, collegeId } }: Props) => {
             <ul className="space-y-4">
               {response.data.map((programme) => (
                 <li
-                  key={programme.id}
+                  key={programme.code}
                   className="flex items-center justify-between border-b border-gray-200 px-4 py-3 text-lg font-medium dark:border-gray-800"
                 >
                   <Link
-                    href={`/management/colleges/${collegeId}/${departmentId}/${programme.id}`}
+                    href={`/management/colleges/${collegeId}/${departmentId}/${programme.code}`}
                     className="text-blue-500 hover:underline"
                   >
                     {programme.name}
